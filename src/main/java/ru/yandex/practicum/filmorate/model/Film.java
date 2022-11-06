@@ -14,15 +14,15 @@ public class Film {
     private int id;
 
     @NotBlank
-    private String name;
+    private final String name;
 
     @NotBlank
     @Size(max = 200, message = "максимальная длина описания — 200 символов")
-    private String description;
+    private final String description;
 
     @NotNull
-    private LocalDate releaseDate;
+    private final LocalDate releaseDate;
 
     @Min(value = 1)
-    private int duration;
+    private final int duration;
 }

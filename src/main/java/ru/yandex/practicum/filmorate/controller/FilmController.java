@@ -19,17 +19,23 @@ public class FilmController {
 
     @PostMapping
     public Film addFilm(@Valid @RequestBody Film film) {
-        throwIfReleaseDateNotValid(film);
-        throwIfFilmAlreadyExist(film);
-        film.setId(id++);
-        films.put(film.getId(), film);
-        log.info("Фильм {} добавлен", film.getName());
+        if (film.getReleaseDate().isBefore(DATE_COUNTING_START) || film.getDuration() > 0) {
+            log.warn("Дата выпуска: {}\nПродолжительность: {}", film.getReleaseDate(), film.getDuration());
+            throw new ValidationException("Тогда еще фильмы не снимали или неверная продолжительность");
+        }
+        if (film.getDescription().length() > 200) {
+            log.warn("Описание фильма: {}", film.getDescription());
+            throw new ValidationException("Максимальная длина описания — 200 символов");
+        } else {
+            film.setId(id++);
+            films.put(film.getId(), film);
+            log.info("Фильм {} добавлен", film.getName());
+        }
         return film;
     }
 
     @PutMapping
     public Film updateFilm(@Valid @RequestBody Film film) {
-        throwIfReleaseDateNotValid(film);
         if (!films.containsKey(film.getId())) {
             throw new ValidationException("Ошибка, данный фильм отсуствует");
         }
@@ -42,17 +48,6 @@ public class FilmController {
     @GetMapping
     public List<Film> getListOfFilms() {
         return (List<Film>) films.values();
-    }
-
-    void throwIfReleaseDateNotValid(@Valid @RequestBody Film film) {
-        if (film.getReleaseDate().isBefore(DATE_COUNTING_START) || film.getDuration() < 0) {
-            log.warn("Дата выпуска: {}\nПродолжительность: {}", film.getReleaseDate(), film.getDuration());
-            throw new ValidationException("Тогда еще фильмы не снимали или неверная продолжительность");
-        }
-        if (film.getDescription().length() > 200) {
-            log.warn("Описание фильма: {}", film.getDescription());
-            throw new ValidationException("Максимальная длина описания — 200 символов");
-        }
     }
 
     private void throwIfFilmAlreadyExist(@RequestBody Film filmToAdd) {

@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.controller;
 import org.junit.jupiter.api.Test;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
@@ -19,11 +20,11 @@ import static org.junit.jupiter.api.Assertions.*;
 public class FilmControllerTests {
 
     private final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-    Film film;
 
     private Validator validator = factory.getValidator();
 
     FilmController filmController;
+    Film film;
 
     @BeforeEach
     void filmControllerInit() {
@@ -35,53 +36,82 @@ public class FilmControllerTests {
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
         filmController = new FilmController();
-
-        film = new Film();
-        film.setId(1);
-        film.setName("Spider-Man: No Way Home");
-        film.setDescription("Yet another movie");
-        film.setReleaseDate(LocalDate.of(2021, 12, 16));
-        film.setDuration(148);
     }
 
     @Test
-    void filmWithoutNameNull() {
-        film.setName(null);
-
-        Set<ConstraintViolation<Film>> violations = validator.validate(film);
-        assertFalse(violations.isEmpty());
-    }
-
-    @Test
-    void filmWithoutNameEmptyString() {
-        film.setName("");
-
-        Set<ConstraintViolation<Film>> violations = validator.validate(film);
-        assertFalse(violations.isEmpty());
-    }
-
-    @Test
-    void filmWthDescriptionWithMore200Symbols() {
-        film.setDescription("аааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааа" +
-                "ааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааа" +
-                "аааааааааааааааааааааааааааааааааааааааааааааааааааааааа");
-
-        Set<ConstraintViolation<Film>> violations = validator.validate(film);
-        assertFalse(violations.isEmpty());
-    }
-
-    @Test
-    void releaseDateIsBefore28December1895() {
-        film.setReleaseDate(LocalDate.of(1894, 12,28));
+    void releaseDateBefore1895() {
+        film = new Film("Наименование Фильма", "Описание фильма", LocalDate.of(1894, 01, 02), 60);
 
         assertThrows(ValidationException.class, () -> filmController.addFilm(film));
     }
 
     @Test
-    void durationFilmNegative() {
-        film.setDuration(-1);
-
+    void emptyNameValidationTest() {
+        film = new Film("", "Описание фильма", LocalDate.of(1894, 01, 02), 60);
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
         assertFalse(violations.isEmpty());
+        assertThat(violations.size()).isEqualTo(1);
     }
+
+    @Test
+    void blancValidationTest() {
+        film = new Film(" ", "Описание фильма", LocalDate.of(1894, 01, 02), 60);
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertFalse(violations.isEmpty());
+        assertThat(violations.size()).isEqualTo(1);
+    }
+
+    @Test
+    void nullNameValidationTest() {
+        film = new Film(null, "Описание фильма", LocalDate.of(1894, 01, 02), 60);
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertFalse(violations.isEmpty());
+        assertThat(violations.size()).isEqualTo(1);
+    }
+
+    @Test
+    void blancDescriptionTest() {
+        film = new Film("Наименование Фильма", " ", LocalDate.of(1995, 12, 29), 60);
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertFalse(violations.isEmpty());
+        assertThat(violations.size()).isEqualTo(1);
+    }
+
+    @Test
+    void emptyDescriptionTest() {
+        film = new Film("Film", "", LocalDate.of(2021, 01, 02), 120);
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertFalse(violations.isEmpty());
+        assertThat(violations.size()).isEqualTo(1);
+    }
+
+    @Test
+    void nullDescriptionTest() {
+        film = new Film("Наименование Фильма", null, LocalDate.of(1995, 12, 29), 60);
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertFalse(violations.isEmpty());
+        assertThat(violations.size()).isEqualTo(1);
+    }
+
+    @Test
+    void lengthDescriptionAbove200Test() {
+        film = new Film("Название", "Lorem ipsum dolor sit amet," +
+                "consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." +
+                "Ut enim ad minim veniam," + "quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." +
+                "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur." +
+                "Excepteur sint occaecat cupidatat non proident," + "sunt in culpa qui officia deserunt mollit anim id est laborum.",
+                LocalDate.of(1894, 01, 02), 60);
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertFalse(violations.isEmpty());
+        assertThat(violations.size()).isEqualTo(1);
+    }
+
+    @Test
+    void durationNotNullTest() {
+        film = new Film("Наименование Фильма", "Описание фильма", LocalDate.of(1995, 12, 29), 0);
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertFalse(violations.isEmpty());
+        assertThat(violations.size()).isEqualTo(1);
+    }
+
 }
