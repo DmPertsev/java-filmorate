@@ -41,12 +41,12 @@ public class UserControllerTests  {
     @Test
     void userNoNameTest() {
         user = new User("test@test.ru", "login", LocalDate.of(1970, 01, 28));
-        userController.validate(user);
+        userController.throwIfUserPrintWrongInfo(user);
         assertEquals("login", user.getName());
 
         user = new User("test@test.ru", "login", LocalDate.of(1970, 01, 28));
         user.setName(" ");
-        userController.validate(user);
+        userController.throwIfUserPrintWrongInfo(user);
         assertEquals("login", user.getName());
     }
 

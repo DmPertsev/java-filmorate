@@ -19,8 +19,8 @@ public class FilmController {
 
     @PostMapping
     public Film addFilm(@Valid @RequestBody Film film) {
-        validate(film);
-        filmExistCheck(film);
+        throwIfReleaseDateNotValid(film);
+        throwIfFilmAlreadyExist(film);
         film.setId(id++);
         films.put(film.getId(), film);
         log.info("Фильм {} добавлен", film.getName());
@@ -29,22 +29,22 @@ public class FilmController {
 
     @PutMapping
     public Film updateFilm(@Valid @RequestBody Film film) {
-        validate(film);
+        throwIfReleaseDateNotValid(film);
         if (!films.containsKey(film.getId())) {
             throw new ValidationException("Ошибка, данный фильм отсуствует");
         }
-        filmExistCheck(film);
+        throwIfFilmAlreadyExist(film);
         films.put(film.getId(), film);
         log.info("Обновлена информация о фильме: {}", film.getName());
         return film;
     }
 
     @GetMapping
-    public Collection<Film> getListOfFilms() {
-        return films.values();
+    public List<Film> getListOfFilms() {
+        return (List<Film>) films.values();
     }
 
-    void validate(@Valid @RequestBody Film film) {
+    void throwIfReleaseDateNotValid(@Valid @RequestBody Film film) {
         if (film.getReleaseDate().isBefore(DATE_COUNTING_START) || film.getDuration() < 0) {
             log.warn("Дата выпуска: {}\nПродолжительность: {}", film.getReleaseDate(), film.getDuration());
             throw new ValidationException("Тогда еще фильмы не снимали или неверная продолжительность");
@@ -53,15 +53,14 @@ public class FilmController {
             log.warn("Описание фильма: {}", film.getDescription());
             throw new ValidationException("Максимальная длина описания — 200 символов");
         }
-
     }
 
-    private void filmExistCheck(@RequestBody Film filmToAdd) {
+    private void throwIfFilmAlreadyExist(@RequestBody Film filmToAdd) {
         boolean exists = films.values().stream()
                 .anyMatch(film -> isAlreadyExist(filmToAdd, film));
         if (exists) {
             log.warn("Добавить фильм: {}", filmToAdd);
-            throw new ValidationException("Такой фильм уже есть");
+            throw new ValidationException("Фильм: " + filmToAdd + "уже сущетсвует в коллекции");
         }
     }
 

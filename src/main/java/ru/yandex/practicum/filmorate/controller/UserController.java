@@ -2,16 +2,14 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.InvalidEmailException;
-import ru.yandex.practicum.filmorate.exceptions.UserAlreadyExistException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -23,8 +21,8 @@ public class UserController {
 
     @PostMapping
     public User addUser(@Valid @RequestBody User user) {
-        validate(user);
-        userExistCheck(user);
+        throwIfUserPrintWrongInfo(user);
+        throwIfUserAlreadyExist(user);
         user.setId(id++);
         users.put(user.getId(), user);
         log.info("Пользователь добавлен, Логин: {}, email: {}", user.getLogin(), user.getEmail());
@@ -33,22 +31,22 @@ public class UserController {
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
-        validate(user);
+        throwIfUserPrintWrongInfo(user);
         if (!users.containsKey(user.getId())) {
             throw new ValidationException("Невозможно обновить данные, так как пользователя не существует");
         }
-        userExistCheck(user);
+        throwIfUserAlreadyExist(user);
         users.put(user.getId(), user);
         log.info("Данные пользователя с id: {}, логином: {} успешно обновлена", user.getId(), user.getLogin());
         return user;
     }
 
     @GetMapping
-    public Collection<User> findAll() {
-        return users.values();
+    public List<User> findAll() {
+        return (List<User>) users.values();
     }
 
-    void validate(@Valid @RequestBody User user) {
+    void throwIfUserPrintWrongInfo(@Valid @RequestBody User user) {
         if (user.getLogin().contains(" ")) {
             log.warn("Логин: {}", user.getLogin());
             throw new ValidationException("Логин пользователя не может содержать пробелы");
@@ -62,7 +60,7 @@ public class UserController {
         }
     }
 
-    private void userExistCheck(@RequestBody User userToAdd) {
+    private void throwIfUserAlreadyExist(@RequestBody User userToAdd) {
         boolean exists = users.values().stream()
                 .anyMatch(user -> isAlreadyExist(userToAdd, user));
         if (exists) {
