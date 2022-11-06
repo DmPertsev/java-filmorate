@@ -2,7 +2,9 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.ValidationException;
+import ru.yandex.practicum.filmorate.exceptions.BadRequestException;
+import ru.yandex.practicum.filmorate.exceptions.ConflictException;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import javax.validation.Valid;
@@ -31,7 +33,7 @@ public class FilmController {
     public Film put(@Valid @RequestBody Film film) {
         throwIfReleaseDateNotValid(film);
         if (!films.containsKey(film.getId())) {
-            throw new ValidationException("Невозможно обновить данные о фильме, так как такого фильма у нас нет");
+            throw new NotFoundException("HTTP ERROR 404: Невозможно обновить данные о фильме, так как такого фильма у нас нет");
         }
         throwIfAlreadyExist(film);
         films.put(film.getId(), film);
@@ -47,13 +49,8 @@ public class FilmController {
     void throwIfReleaseDateNotValid(@Valid @RequestBody Film film) {
         if (film.getReleaseDate().isBefore(DATE_BEFORE) || film.getDuration() < 0) {
             log.warn("Дата выпуска фильма: {}\nПродолжительность фильма: {}", film.getReleaseDate(), film.getDuration());
-            throw new ValidationException("До 28 декабря 1895 года кино не производили или продолжительность неверная");
+            throw new BadRequestException("До 28 декабря 1895 года кино не производили или продолжительность неверная");
         }
-        if (film.getDescription().length() > 200) {
-            log.warn("Текущее описание фильма: {}", film.getDescription());
-            throw new ValidationException("Описание должно быть не более 200 символов");
-        }
-
     }
 
     private void throwIfAlreadyExist(@RequestBody Film filmToAdd) {
@@ -61,7 +58,7 @@ public class FilmController {
                 .anyMatch(film -> isAlreadyExist(filmToAdd, film));
         if (exists) {
             log.warn("Фильм к добавлению: {}", filmToAdd);
-            throw new ValidationException("Фильм: " + filmToAdd + " уже существует в коллекции");
+            throw new ConflictException("HTTP ERROR 409: Фильм: " + filmToAdd + " уже существует в коллекции");
         }
     }
 

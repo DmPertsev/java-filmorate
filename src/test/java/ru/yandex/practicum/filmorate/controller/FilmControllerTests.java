@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.exceptions.ValidationException;
+import ru.yandex.practicum.filmorate.exceptions.BadRequestException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import javax.validation.ConstraintViolation;
@@ -42,7 +42,7 @@ public class FilmControllerTests {
     void releaseDateBefore1895() {
         film = new Film("Наименование Фильма", "Описание фильма", LocalDate.of(1894, 01, 02), 60);
 
-        assertThrows(ValidationException.class, () -> filmController.throwIfReleaseDateNotValid(film));
+        assertThrows(BadRequestException.class, () -> filmController.throwIfReleaseDateNotValid(film));
     }
 
     @Test

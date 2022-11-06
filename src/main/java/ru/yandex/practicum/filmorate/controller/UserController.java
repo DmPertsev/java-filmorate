@@ -2,7 +2,9 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.ValidationException;
+import ru.yandex.practicum.filmorate.exceptions.BadRequestException;
+import ru.yandex.practicum.filmorate.exceptions.ConflictException;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import javax.validation.Valid;
@@ -30,7 +32,7 @@ public class UserController {
     public User put(@Valid @RequestBody User user) {
         throwIfUserPrintWrongInfo(user);
         if (!users.containsKey(user.getId())) {
-            throw new ValidationException("Невозможно обновить данные, так как пользователя не существует");
+            throw new NotFoundException("HTTP ERROR 404: Невозможно обновить данные, так как пользователя не существует");
         }
         throwIfUserAlreadyExist(user);
         users.put(user.getId(), user);
@@ -46,14 +48,14 @@ public class UserController {
     void throwIfUserPrintWrongInfo(@Valid @RequestBody User user) {
         if (user.getLogin().contains(" ")) {
             log.warn("Логин: {}", user.getLogin());
-            throw new ValidationException("Логин пользователя не может содержать пробелы");
+            throw new BadRequestException("Логин пользователя не может содержать пробелы");
         }
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
         if (user.getBirthday().isAfter(LocalDate.now())) {
             log.warn("Дата рождения: {}", user.getBirthday());
-            throw new ValidationException("Дата рождения не может быть в будущем!");
+            throw new BadRequestException("Дата рождения не может быть в будущем!");
         }
     }
 
@@ -62,7 +64,7 @@ public class UserController {
                 .anyMatch(user -> isAlreadyExist(userToAdd, user));
         if (exists) {
             log.warn("Email пользователя: {}", userToAdd);
-            throw new ValidationException("Пользователь с таким Email или логином уже существует");
+            throw new ConflictException("HTTP ERROR 409: Пользователь с таким Email или логином уже существует");
         }
     }
 
