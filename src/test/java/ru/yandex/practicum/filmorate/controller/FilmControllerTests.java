@@ -42,7 +42,7 @@ public class FilmControllerTests {
     void releaseDateBefore1895() {
         film = new Film("Наименование Фильма", "Описание фильма", LocalDate.of(1894, 01, 02), 60);
 
-        assertThrows(ValidationException.class, () -> filmController.addFilm(film));
+        assertThrows(ValidationException.class, () -> filmController.throwIfReleaseDateNotValid(film));
     }
 
     @Test

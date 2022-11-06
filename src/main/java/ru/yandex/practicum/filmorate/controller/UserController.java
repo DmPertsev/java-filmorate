@@ -7,10 +7,7 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @Slf4j
@@ -20,7 +17,7 @@ public class UserController {
     final Map<Integer, User> users = new HashMap<>();
 
     @PostMapping
-    public User addUser(@Valid @RequestBody User user) {
+    public User create(@Valid @RequestBody User user) {
         throwIfUserPrintWrongInfo(user);
         throwIfUserAlreadyExist(user);
         user.setId(id++);
@@ -30,7 +27,7 @@ public class UserController {
     }
 
     @PutMapping
-    public User updateUser(@Valid @RequestBody User user) {
+    public User put(@Valid @RequestBody User user) {
         throwIfUserPrintWrongInfo(user);
         if (!users.containsKey(user.getId())) {
             throw new ValidationException("Невозможно обновить данные, так как пользователя не существует");
@@ -43,7 +40,7 @@ public class UserController {
 
     @GetMapping
     public List<User> findAll() {
-        return (List<User>) users.values();
+        return new ArrayList<>(users.values());
     }
 
     void throwIfUserPrintWrongInfo(@Valid @RequestBody User user) {
