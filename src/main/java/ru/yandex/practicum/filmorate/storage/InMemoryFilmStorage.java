@@ -3,14 +3,15 @@ package ru.yandex.practicum.filmorate.storage;
 import com.sun.jdi.InternalException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exceptions.BadRequestException;
-import ru.yandex.practicum.filmorate.exceptions.ConflictException;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.BadRequestException;
+import ru.yandex.practicum.filmorate.exception.ConflictException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -22,7 +23,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     private final Map<Integer, Film> films = new HashMap<>();
 
     @Override
-    public Film createNewFilm(Film film) {
+    public Film create(Film film) {
         throwIfReleaseDateNotValid(film);
         throwIfAlreadyExist(film);
         film.setId(id++);
@@ -32,7 +33,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film updateFilm(Film film) {
+    public Film update(Film film) {
         throwIfReleaseDateNotValid(film);
         if (!films.containsKey(film.getId())) {
             throw new NotFoundException("HTTP ERROR 404: Невозможно обновить данные о фильме, так как такого фильма у нас нет");
@@ -44,24 +45,24 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> findAllFilms() {
-        return films.values();
+    public List<Film> findAll() {
+        return new ArrayList<>(films.values());
     }
 
     @Override
-    public Film getFilmById(int id) {
+    public Film getById(int id) {
         return films.get(id);
     }
 
     @Override
-    public Film deleteFilmById(int id) {
+    public Film deleteById(int id) {
         Film film = films.get(id);
         films.remove(id);
         return film;
     }
 
     @Override
-    public Map<Integer, Film> getAllFilms() {
+    public Map<Integer, Film> getAll() {
         return films;
     }
 

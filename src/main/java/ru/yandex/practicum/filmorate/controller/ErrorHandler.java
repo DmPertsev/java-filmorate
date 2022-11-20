@@ -6,10 +6,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.yandex.practicum.filmorate.exceptions.BadRequestException;
-import ru.yandex.practicum.filmorate.exceptions.ConflictException;
-import ru.yandex.practicum.filmorate.exceptions.ErrorResponse;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.BadRequestException;
+import ru.yandex.practicum.filmorate.exception.ConflictException;
+import ru.yandex.practicum.filmorate.exception.ErrorResponse;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 
 
 @RestControllerAdvice
@@ -33,7 +33,7 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handlerInternalException(final InternalException e) {
-        log.info("500 {}", e.getMessage());
+        log.info("500 {}", e.getMessage(), e);
         return new ErrorResponse(e.getMessage());
     }
 

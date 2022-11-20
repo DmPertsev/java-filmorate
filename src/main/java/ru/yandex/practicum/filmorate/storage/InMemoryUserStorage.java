@@ -2,15 +2,13 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exceptions.BadRequestException;
-import ru.yandex.practicum.filmorate.exceptions.ConflictException;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.BadRequestException;
+import ru.yandex.practicum.filmorate.exception.ConflictException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Component
 @Slf4j
@@ -20,7 +18,7 @@ public class InMemoryUserStorage implements UserStorage {
     private final Map<Integer, User> users = new HashMap<>();
 
     @Override
-    public User createNewUser(User user) {
+    public User create(User user) {
         throwIfUserPrintWrongInfo(user);
         throwIfUserAlreadyExist(user);
         user.setId(id++);
@@ -30,7 +28,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User updateUser(User user) {
+    public User update(User user) {
         throwIfUserPrintWrongInfo(user);
         if (!users.containsKey(user.getId())) {
             throw new NotFoundException("HTTP ERROR 404: Невозможно обновить данные, так как пользователя не существует");
@@ -42,22 +40,22 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public Collection<User> findAllUsers() {
-        return users.values();
+    public List<User> findAll() {
+        return new ArrayList<>(users.values());
     }
 
     @Override
-    public Map<Integer, User> getAllUsers() {
+    public Map<Integer, User> getAll() {
         return users;
     }
 
     @Override
-    public User getUserById(int id) {
+    public User getById(int id) {
         return users.get(id);
     }
 
     @Override
-    public User deleteUserById(int id) {
+    public User deleteById(int id) {
         User user = users.get(id);
         users.remove(id);
         return user;

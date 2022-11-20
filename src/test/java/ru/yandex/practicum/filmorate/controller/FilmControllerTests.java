@@ -24,7 +24,7 @@ class FilmControllerTest {
         film.setDuration(100);
 
         RuntimeException trow = assertThrows(RuntimeException.class, () -> {
-            filmController.createNewFilm(film);});
+            filmController.create(film);});
         assertEquals("HTTP ERROR 400: Название фильма не может быть пустым", trow.getMessage());
     }
 
@@ -37,7 +37,7 @@ class FilmControllerTest {
         film.setDuration(100);
 
         RuntimeException trow = assertThrows(RuntimeException.class, () -> {
-            filmController.createNewFilm(film);});
+            filmController.create(film);});
         assertEquals("HTTP ERROR 400: До 28 декабря 1895 года кино не производили", trow.getMessage());
     }
 
@@ -50,7 +50,7 @@ class FilmControllerTest {
         film.setDuration(-100);
 
         RuntimeException trow = assertThrows(RuntimeException.class, () -> {
-            filmController.createNewFilm(film);});
+            filmController.create(film);});
         assertEquals("HTTP ERROR 500: Продолжительность фильма не может быть меньше нуля", trow.getMessage());
     }
 
@@ -65,7 +65,7 @@ class FilmControllerTest {
         film.setDuration(100);
 
         RuntimeException trow = assertThrows(RuntimeException.class, () -> {
-            filmController.createNewFilm(film);});
+            filmController.create(film);});
         assertEquals("HTTP ERROR 400: Описание должно быть не более 200 символов", trow.getMessage());
     }
 }

@@ -16,28 +16,28 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public User createNewUser(@Valid @RequestBody User user) {
-        return userService.createNewUser(user);
+    public User create(@Valid @RequestBody User user) {
+        return userService.create(user);
     }
 
     @PutMapping
-    public User updateUser(@Valid @RequestBody User user) {
-        return userService.updateUser(user);
+    public User update(@Valid @RequestBody User user) {
+        return userService.update(user);
     }
 
     @GetMapping
-    public Collection<User> findAllUsers() {
-        return userService.findAllUsers();
+    public Collection<User> findAll() {
+        return userService.findAll();
     }
 
     @GetMapping("/{id}")
-    public User getUserById(@PathVariable int id) {
-        return userService.getUserById(id);
+    public User getById(@PathVariable int id) {
+        return userService.getById(id);
     }
 
     @DeleteMapping("/{id}")
-    public User deleteUserById(@PathVariable int id) {
-        return userService.deleteUserById(id);
+    public User deleteById(@PathVariable int id) {
+        return userService.deleteById(id);
     }
 
     @PutMapping("/{id}/friends/{friendId}")

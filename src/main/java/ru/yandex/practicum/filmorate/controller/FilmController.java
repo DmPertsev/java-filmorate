@@ -16,28 +16,28 @@ public class FilmController {
     private final FilmService filmService;
 
     @PostMapping
-    public Film createNewFilm(@Valid @RequestBody Film film) {
-        return filmService.createNewFilm(film);
+    public Film create(@Valid @RequestBody Film film) {
+        return filmService.create(film);
     }
 
     @PutMapping
-    public Film updateFilm(@Valid @RequestBody Film film) {
-        return filmService.updateFilm(film);
+    public Film update(@Valid @RequestBody Film film) {
+        return filmService.update(film);
     }
 
     @GetMapping
-    public Collection<Film> findAllFilms() {
+    public Collection<Film> findAll() {
         return filmService.findAll();
     }
 
     @GetMapping("/{id}")
-    public Film getFilmById(@PathVariable int id) {
-        return filmService.getFilmById(id);
+    public Film getById(@PathVariable int id) {
+        return filmService.getById(id);
     }
 
     @DeleteMapping("/{id}")
-    public Film deleteFilmById(@PathVariable int id) {
-        return filmService.deleteFilmById(id);
+    public Film deleteById(@PathVariable int id) {
+        return filmService.deleteById(id);
     }
 
     @PutMapping("/{id}/like/{userId}")
