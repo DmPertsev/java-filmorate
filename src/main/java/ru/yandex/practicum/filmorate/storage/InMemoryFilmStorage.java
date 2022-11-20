@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage;
 
+import com.sun.jdi.InternalException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exceptions.BadRequestException;
@@ -75,7 +76,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         }
         if (film.getDuration() < 0) {
             log.warn("Продолжительность фильма: {}", film.getDuration());
-            throw new BadRequestException("Продолжительность фильма не может быть меньше нуля");
+            throw new InternalException("Продолжительность фильма не может быть меньше нуля");
         }
     }
 

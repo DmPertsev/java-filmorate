@@ -22,15 +22,15 @@ public class User {
     @NotNull
     @NotBlank
     @Email
-    private  String email;
+    private String email;
 
     @NotNull
     @NotBlank
-    private  String login;
+    private String login;
 
     private String name;
 
     @NotNull
     @PastOrPresent
-    private  LocalDate birthday;
+    private LocalDate birthday;
 }

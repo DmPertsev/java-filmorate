@@ -49,7 +49,7 @@ public class UserService {
         return userStorage.deleteUserById(id);
     }
 
-    public List<User> addNewFriend(int firstId, int secondId) {
+    public List<User>  addFriendship(int firstId, int secondId) {
         if (!userStorage.getUsers().containsKey(firstId) || !userStorage.getUsers().containsKey(secondId)) {
             throw new NotFoundException(String.format("HTTP ERROR 404: Пользователя с id: %d или с id: %d не существует", firstId, secondId));
         }
@@ -64,7 +64,7 @@ public class UserService {
         return Arrays.asList(userStorage.getUserById(firstId), userStorage.getUserById(secondId));
     }
 
-    public List<User> deleteFriend(int firstId, int secondId) {
+    public List<User> removeFriendship(int firstId, int secondId) {
         if (!userStorage.getUsers().containsKey(firstId) || !userStorage.getUsers().containsKey(secondId)) {
             throw new NotFoundException(String.format("HTTP ERROR 404: Пользователя с id: %d или с id: %d не существует", firstId, secondId));
         }
