@@ -34,7 +34,7 @@ public class UserService {
     }
 
     public User getUserById(int id) {
-        if (!userStorage.getUsers().containsKey(id)) {
+        if (!userStorage.getAllUsers().containsKey(id)) {
             throw new NotFoundException("HTTP ERROR 404: Пользователь не найден");
         }
         log.info("Пользователь с id: '{}' отправлен", id);
@@ -42,16 +42,16 @@ public class UserService {
     }
 
     public User deleteUserById(int id) {
-        if (!userStorage.getUsers().containsKey(id)) {
+        if (!userStorage.getAllUsers().containsKey(id)) {
             throw new NotFoundException("HTTP ERROR 404: Пользователь не найден. Невозможно удалить неизветсного пользователя");
         }
         log.info("Пользователь с id: '{}' удален", id);
         return userStorage.deleteUserById(id);
     }
 
-    public List<User>  addFriendship(int firstId, int secondId) {
-        if (!userStorage.getUsers().containsKey(firstId) || !userStorage.getUsers().containsKey(secondId)) {
-            throw new NotFoundException(String.format("HTTP ERROR 404: Пользователя с id: %d или с id: %d не существует", firstId, secondId));
+    public List<User> addFriendship(int firstId, int secondId) {
+        if (!userStorage.getAllUsers().containsKey(firstId) || !userStorage.getAllUsers().containsKey(secondId)) {
+            throw new NotFoundException(String.format("Пользователя с id: %d или с id: %d не существует", firstId, secondId));
         }
         if (userStorage.getUserById(firstId).getFriends().contains(secondId)) {
             throw new InternalException("Пользователи уже и так являются друзьями");
@@ -65,8 +65,8 @@ public class UserService {
     }
 
     public List<User> removeFriendship(int firstId, int secondId) {
-        if (!userStorage.getUsers().containsKey(firstId) || !userStorage.getUsers().containsKey(secondId)) {
-            throw new NotFoundException(String.format("HTTP ERROR 404: Пользователя с id: %d или с id: %d не существует", firstId, secondId));
+        if (!userStorage.getAllUsers().containsKey(firstId) || !userStorage.getAllUsers().containsKey(secondId)) {
+            throw new NotFoundException(String.format("Пользователя с id: %d или с id: %d не существует", firstId, secondId));
         }
         if (!userStorage.getUserById(firstId).getFriends().contains(secondId)) {
             throw new InternalException("Пользователи не являются друзьями");
@@ -80,8 +80,8 @@ public class UserService {
     }
 
     public List<User> getFriendsListById(int id) {
-        if (!userStorage.getUsers().containsKey(id)) {
-            throw new NotFoundException("HTTP ERROR 404: невозможно получить список друзей пользователя, " +
+        if (!userStorage.getAllUsers().containsKey(id)) {
+            throw new NotFoundException("HTTP ERROR 404: Невозможно получить список друзей пользователя, " +
                     "так как пользователь не найден :(");
         }
         log.info("Успех! Запрос получения списка друзей пользователя '{}' выполнен успешно :)",
@@ -92,8 +92,8 @@ public class UserService {
     }
 
     public List<User> getCommonFriendsList(int firstId, int secondId) {
-        if (!userStorage.getUsers().containsKey(firstId) || !userStorage.getUsers().containsKey(secondId)) {
-            throw new NotFoundException(String.format("HTTP ERROR 404: Пользователь с id: %d или с id: %d не существует :(", firstId, secondId));
+        if (!userStorage.getAllUsers().containsKey(firstId) || !userStorage.getAllUsers().containsKey(secondId)) {
+            throw new NotFoundException(String.format("Пользователь с id: %d или с id: %d не существует :(", firstId, secondId));
         }
         User firstUser = userStorage.getUserById(firstId);
         User secondUser = userStorage.getUserById(secondId);

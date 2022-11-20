@@ -25,17 +25,17 @@ public class FilmService {
         return filmStorage.updateFilm(film);
     }
 
-    public Collection<Film> findAllFilms() {
+    public Collection<Film> findAll() {
         log.info("Список фильмов отправлен");
         return filmStorage.findAllFilms();
     }
 
-    public Film getFilmByID(int id) {
+    public Film getFilmById(int id) {
         if (!filmStorage.getAllFilms().containsKey(id)) {
             throw new NotFoundException("HTTP ERROR 404: Фильм не найден");
         }
         log.info("Фильм с id: " + id + " отправлен");
-        return filmStorage.getFilmByID(id);
+        return filmStorage.getFilmById(id);
     }
 
     public Film deleteFilmById(int id) {
@@ -46,31 +46,31 @@ public class FilmService {
         return filmStorage.deleteFilmById(id);
     }
 
-    public Film addNewLike(int filmId, int userId) {
+    public Film addLike(int filmId, int userId) {
         if (!filmStorage.getAllFilms().containsKey(filmId)) {
             throw new NotFoundException("HTTP ERROR 404: Фильм не найден");
         }
-        filmStorage.getFilmByID(filmId).getLikes().add(userId);
+        filmStorage.getFilmById(filmId).getUsersLikes().add(userId);
         log.info("Пользователь с id: {} поставил лайк фильму с id {}", userId, filmId);
-        return filmStorage.getFilmByID(filmId);
+        return filmStorage.getFilmById(filmId);
     }
 
-    public Film deleteLike(int filmId, int userId) {
+    public Film removeLike(int filmId, int userId) {
         if (!filmStorage.getAllFilms().containsKey(filmId)) {
             throw new NotFoundException("HTTP ERROR 404: Фильм не найден");
         }
-        if (!filmStorage.getFilmByID(filmId).getLikes().contains(userId)) {
+        if (!filmStorage.getFilmById(filmId).getUsersLikes().contains(userId)) {
             throw new NotFoundException("HTTP ERROR 404: Нет лайка от пользователя");
         }
-        filmStorage.getFilmByID(filmId).getLikes().contains(userId);
+        filmStorage.getFilmById(filmId).getUsersLikes().contains(userId);
         log.info("Пользователь с id: {} удалил лайк фильму с id {}", userId, filmId);
-        return filmStorage.getFilmByID(filmId);
+        return filmStorage.getFilmById(filmId);
     }
-    public List<Film> getPopularFilmsList(int count) {
+    public List<Film> getPopularFilms(int count) {
         log.info("Список популярных фильмов отправлен");
 
         return filmStorage.findAllFilms().stream()
-                .sorted((o1, o2) -> Integer.compare(o2.getLikes().size(), o1.getLikes().size()))
+                .sorted((o1, o2) -> Integer.compare(o2.getUsersLikes().size(), o1.getUsersLikes().size()))
                 .limit(count)
                 .collect(Collectors.toList());
     }

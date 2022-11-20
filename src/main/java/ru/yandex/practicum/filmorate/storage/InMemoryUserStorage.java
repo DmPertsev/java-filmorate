@@ -47,7 +47,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public Map<Integer, User> getUsers() {
+    public Map<Integer, User> getAllUsers() {
         return users;
     }
 
@@ -64,9 +64,10 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     void throwIfUserPrintWrongInfo(User user) {
+
         if (user.getLogin().contains(" ") || user.getLogin().isBlank()) {
-            log.warn("Логин: {}", user.getLogin());
-            throw new BadRequestException("Логин пользователя не может содержать пробелы");
+            log.warn("Введенный Логин пользователя: '{}'", user.getLogin());
+            throw new BadRequestException("HTTP ERROR 400: Логин не может быть пустым");
         }
 
         if (user.getName() == null || user.getName().equals("")) {
@@ -75,13 +76,13 @@ public class InMemoryUserStorage implements UserStorage {
         }
 
         if (user.getBirthday().isAfter(LocalDate.now())) {
-            log.warn("Дата рождения: {}", user.getBirthday());
-            throw new BadRequestException("Дата рождения не может быть в будущем!");
+            log.warn("Указанная Дата рождения: '{}'", user.getBirthday());
+            throw new BadRequestException("HTTP ERROR 400: Дата рождения не может быть в будущем");
         }
 
         if (user.getEmail().isBlank() || user.getEmail() == null || user.getEmail().equals(" ")) {
             log.warn("Введенный Email пользователя: '{}'", user.getEmail());
-            throw new BadRequestException("Email не может быть пустым");
+            throw new BadRequestException("HTTP ERROR 400: Email не может быть пустым");
         }
     }
 
@@ -89,7 +90,7 @@ public class InMemoryUserStorage implements UserStorage {
         boolean exists = users.values().stream()
                 .anyMatch(user -> isAlreadyExist(userToAdd, user));
         if (exists) {
-            log.warn("Email пользователя: {}", userToAdd);
+            log.warn("Введенный Email пользователя: '{}'", userToAdd);
             throw new ConflictException("HTTP ERROR 409: Пользователь с таким Email или логином уже существует");
         }
     }
@@ -99,7 +100,5 @@ public class InMemoryUserStorage implements UserStorage {
                 userToAdd.getEmail().equals(user.getEmail());
 
     }
-
-
 
 }

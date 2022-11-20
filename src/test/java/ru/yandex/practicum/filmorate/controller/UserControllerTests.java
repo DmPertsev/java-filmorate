@@ -25,7 +25,7 @@ class UserControllerTest {
         RuntimeException trow = assertThrows(RuntimeException.class, () -> {
             userController.createNewUser(user);
         });
-        assertEquals("Email не может быть пустым", trow.getMessage());
+        assertEquals("HTTP ERROR 400: Email не может быть пустым", trow.getMessage());
     }
 
     @Test
@@ -39,7 +39,7 @@ class UserControllerTest {
         RuntimeException trow = assertThrows(RuntimeException.class, () -> {
             userController.createNewUser(user);
         });
-        assertEquals("Логин пользователя не может содержать пробелы", trow.getMessage());
+        assertEquals("HTTP ERROR 400: Логин не может быть пустым", trow.getMessage());
     }
 
     @Test
@@ -49,10 +49,10 @@ class UserControllerTest {
         user.setLogin("Login");
         user.setName("");
         user.setBirthday(LocalDate.now().minusYears(16));
+
         userController.createNewUser(user);
         assertEquals(user.getName(), userController.getUserById(1).getName());
     }
-
 
     @Test
     void createUserFailBirthdayTest() {
@@ -65,6 +65,6 @@ class UserControllerTest {
         RuntimeException trow = assertThrows(RuntimeException.class, () -> {
             userController.createNewUser(user);
         });
-        assertEquals("Дата рождения не может быть в будущем!", trow.getMessage());
+        assertEquals("HTTP ERROR 400: Дата рождения не может быть в будущем", trow.getMessage());
     }
 }

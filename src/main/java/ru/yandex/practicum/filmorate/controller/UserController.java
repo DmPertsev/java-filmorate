@@ -2,12 +2,12 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -41,12 +41,12 @@ public class UserController {
     }
 
     @PutMapping("/{id}/friends/{friendId}")
-    public List<User> addNewFriend(@PathVariable int id, @PathVariable int friendId) {
+    public List<User> addFriend(@PathVariable int id, @PathVariable int friendId) {
         return userService.addFriendship(id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
-    public List<User> deleteFriend(@PathVariable int id, @PathVariable int friendId) {
+    public List<User> removeFriend(@PathVariable int id, @PathVariable int friendId) {
         return userService.removeFriendship(id, friendId);
     }
 
@@ -56,7 +56,7 @@ public class UserController {
     }
 
     @GetMapping("/{firstId}/friends/common/{secondId}")
-    public List<User> getCommonFriendsList(@PathVariable int firstId, @PathVariable int secondId) {
+    public List<User> getCommonFriends(@PathVariable int firstId, @PathVariable int secondId) {
         return userService.getCommonFriendsList(firstId, secondId);
     }
 }

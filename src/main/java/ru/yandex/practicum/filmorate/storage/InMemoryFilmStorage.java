@@ -49,7 +49,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film getFilmByID(int id) {
+    public Film getFilmById(int id) {
         return films.get(id);
     }
 
@@ -65,18 +65,22 @@ public class InMemoryFilmStorage implements FilmStorage {
         return films;
     }
 
-    void  throwIfReleaseDateNotValid(Film film) {
+    void throwIfReleaseDateNotValid(Film film) {
         if (film.getName().isBlank()) {
             log.warn("Дата выпуска фильма: {}", film.getReleaseDate());
-            throw new BadRequestException("Название фильма не может быть пустым");
+            throw new BadRequestException("HTTP ERROR 400: Название фильма не может быть пустым");
         }
         if (film.getReleaseDate().isBefore(DATE_BEFORE)) {
             log.warn("Дата выпуска фильма: {}", film.getReleaseDate());
-            throw new BadRequestException("До 28 декабря 1895 года кино не производили");
+            throw new BadRequestException("HTTP ERROR 400: До 28 декабря 1895 года кино не производили");
         }
         if (film.getDuration() < 0) {
             log.warn("Продолжительность фильма: {}", film.getDuration());
-            throw new InternalException("Продолжительность фильма не может быть меньше нуля");
+            throw new InternalException("HTTP ERROR 500: Продолжительность фильма не может быть меньше нуля");
+        }
+        if (film.getDescription().length() > 200) {
+            log.warn("Текущее описание фильма: {}", film.getDescription());
+            throw new BadRequestException("HTTP ERROR 400: Описание должно быть не более 200 символов");
         }
     }
 
@@ -85,7 +89,7 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .anyMatch(film -> isAlreadyExist(filmToAdd, film));
         if (exists) {
             log.warn("Фильм к добавлению: {}", filmToAdd);
-            throw new ConflictException("HTTP ERROR 409: Фильм: " + filmToAdd + " уже существует в коллекции");
+            throw new ConflictException("HTTP ERROR 409: Такой фильм уже существует в коллекции");
         }
     }
 

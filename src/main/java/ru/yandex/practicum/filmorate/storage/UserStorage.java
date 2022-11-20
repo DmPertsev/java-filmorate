@@ -15,5 +15,6 @@ public interface UserStorage {
     User deleteUserById(int id);
 
     Collection<User> findAllUsers();
-    Map<Integer, User> getUsers();
+    Map<Integer, User> getAllUsers();
+
 }
