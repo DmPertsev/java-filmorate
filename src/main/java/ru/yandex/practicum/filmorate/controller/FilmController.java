@@ -32,7 +32,7 @@ public class FilmController {
 
     @GetMapping("/{id}")
     public Film getById(@PathVariable int id) {
-        return filmService.getById(id);
+        return filmService.findById(id);
     }
 
     @DeleteMapping("/{id}")

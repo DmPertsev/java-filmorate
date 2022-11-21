@@ -51,7 +51,7 @@ class UserControllerTest {
         user.setBirthday(LocalDate.now().minusYears(16));
 
         userController.create(user);
-        assertEquals(user.getName(), userController.getById(1).getName());
+        assertEquals(user.getName(), userController.findById(1).getName());
     }
 
     @Test
