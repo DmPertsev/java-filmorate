@@ -5,11 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.BadRequestException;
-import ru.yandex.practicum.filmorate.exception.ConflictException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -28,7 +25,7 @@ public class UserService {
 
     public User create(User user) {
         throwIfUserPrintWrongInfo(user);
-        throwIfAlreadyExist(user);
+        InMemoryUserStorage.throwIfAlreadyExist(user);
         return userStorage.create(user);
     }
 
@@ -128,19 +125,5 @@ public class UserService {
             log.warn("Введенный Email пользователя: '{}'", user.getEmail());
             throw new BadRequestException("HTTP ERROR 400: Email не может быть пустым");
         }
-    }
-
-    public void throwIfAlreadyExist(User userToAdd) {
-        boolean exists = userStorage.findAll().stream()
-                .anyMatch(user -> isAlreadyExist(userToAdd, user));
-        if (exists) {
-            log.warn("Введенный Email пользователя: '{}'", userToAdd);
-            throw new ConflictException("HTTP ERROR 409: Пользователь с таким Email или логином уже существует");
-        }
-    }
-
-    private static boolean isAlreadyExist(User userToAdd, User user) {
-        return userToAdd.getLogin().equals(user.getLogin()) ||
-                userToAdd.getEmail().equals(user.getEmail());
     }
 }

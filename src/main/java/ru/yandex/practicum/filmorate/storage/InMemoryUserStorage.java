@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.storage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ConflictException;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.*;
@@ -52,5 +51,19 @@ public class InMemoryUserStorage implements UserStorage {
         if (!users.containsKey(id)) {
         }
         return false;
+    }
+
+    public static void throwIfAlreadyExist(User userToAdd) {
+        boolean exists = users.values().stream()
+                .anyMatch(user -> isAlreadyExist(userToAdd, user));
+        if (exists) {
+            log.warn("Введенный Email пользователя: '{}'", userToAdd);
+            throw new ConflictException("HTTP ERROR 409: Пользователь с таким Email или логином уже существует");
+        }
+    }
+
+    private static boolean isAlreadyExist(User userToAdd, User user) {
+        return userToAdd.getLogin().equals(user.getLogin()) ||
+                userToAdd.getEmail().equals(user.getEmail());
     }
 }
