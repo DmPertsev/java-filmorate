@@ -55,16 +55,4 @@ public class InMemoryFilmStorage implements FilmStorage {
         }
         return false;
     }
-
-    public static boolean isExist(Film filmToAdd) {
-        boolean b = films.values().stream().anyMatch(film -> isAlreadyExist(filmToAdd, film));
-        if (b == false) {
-        }
-        return b;
-    }
-
-    private static boolean isAlreadyExist(Film filmToAdd, Film film) {
-        return filmToAdd.getName().equals(film.getName()) &&
-                filmToAdd.getReleaseDate().equals(film.getReleaseDate());
-    }
 }

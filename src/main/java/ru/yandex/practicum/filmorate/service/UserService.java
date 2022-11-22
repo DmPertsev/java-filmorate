@@ -130,8 +130,9 @@ public class UserService {
         }
     }
 
-    public static void throwIfAlreadyExist(User userToAdd) {
-        boolean exists = InMemoryUserStorage.isExist(userToAdd);
+    public void throwIfAlreadyExist(User userToAdd) {
+        boolean exists = userStorage.findAll().stream()
+                .anyMatch(user -> isAlreadyExist(userToAdd, user));
         if (exists) {
             log.warn("Введенный Email пользователя: '{}'", userToAdd);
             throw new ConflictException("HTTP ERROR 409: Пользователь с таким Email или логином уже существует");

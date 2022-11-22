@@ -53,16 +53,4 @@ public class InMemoryUserStorage implements UserStorage {
         }
         return false;
     }
-
-    public static boolean isExist(User userToAdd) {
-        boolean b = users.values().stream().anyMatch(user -> isAlreadyExist(userToAdd, user));
-        if (b == false) {
-        }
-        return b;
-    }
-
-    private static boolean isAlreadyExist(User userToAdd, User user) {
-        return userToAdd.getLogin().equals(user.getLogin()) ||
-                userToAdd.getEmail().equals(user.getEmail());
-    }
 }
