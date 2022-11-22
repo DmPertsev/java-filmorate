@@ -2,8 +2,6 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.ConflictException;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.ArrayList;
@@ -16,7 +14,7 @@ import java.util.Map;
 public class InMemoryFilmStorage implements FilmStorage {
 
     private int id = 1;
-    private static final Map<Integer, Film> films = new HashMap<>();
+    public static final Map<Integer, Film> films = new HashMap<>();
 
     @Override
     public Film create(Film film) {
@@ -53,22 +51,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public boolean isNotExist(int id) {
         if (!films.containsKey(id)) {
-            throw new NotFoundException("HTTP ERROR 404: Фильм не найден");
         }
         return false;
-    }
-
-    public static void throwIfAlreadyExist(Film filmToAdd) {
-        boolean exists = films.values().stream()
-                .anyMatch(film -> isAlreadyExist(filmToAdd, film));
-        if (exists) {
-            log.warn("Фильм к добавлению: {}", filmToAdd);
-            throw new ConflictException("HTTP ERROR 409: Такой фильм уже существует в коллекции");
-        }
-    }
-
-    private static boolean isAlreadyExist(Film filmToAdd, Film film) {
-        return filmToAdd.getName().equals(film.getName()) &&
-                filmToAdd.getReleaseDate().equals(film.getReleaseDate());
     }
 }

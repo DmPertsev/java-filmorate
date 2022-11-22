@@ -8,14 +8,12 @@ import ru.yandex.practicum.filmorate.exception.BadRequestException;
 import ru.yandex.practicum.filmorate.exception.ConflictException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,7 +25,7 @@ public class UserService {
 
     public User create(User user) {
         throwIfUserPrintWrongInfo(user);
-        InMemoryUserStorage.throwIfAlreadyExist(user);
+        throwIfAlreadyExist(user);
         return userStorage.create(user);
     }
 
@@ -127,5 +125,19 @@ public class UserService {
             log.warn("Введенный Email пользователя: '{}'", user.getEmail());
             throw new BadRequestException("HTTP ERROR 400: Email не может быть пустым");
         }
+    }
+
+    public static void throwIfAlreadyExist(User userToAdd) {
+        boolean exists = InMemoryUserStorage.users.values().stream()
+                .anyMatch(user -> isAlreadyExist(userToAdd, user));
+        if (exists) {
+            log.warn("Введенный Email пользователя: '{}'", userToAdd);
+            throw new ConflictException("HTTP ERROR 409: Пользователь с таким Email или логином уже существует");
+        }
+    }
+
+    private static boolean isAlreadyExist(User userToAdd, User user) {
+        return userToAdd.getLogin().equals(user.getLogin()) ||
+                userToAdd.getEmail().equals(user.getEmail());
     }
 }

@@ -26,7 +26,7 @@ public class FilmService {
     private final FilmStorage filmStorage;
     public Film create(Film film) {
         throwIfReleaseDateNotValid(film);
-        InMemoryFilmStorage.throwIfAlreadyExist(film);
+        throwIfAlreadyExist(film);
         return filmStorage.create(film);
     }
 
@@ -98,5 +98,19 @@ public class FilmService {
             log.warn("Текущее описание фильма: {}", film.getDescription());
             throw new BadRequestException("HTTP ERROR 400: Описание должно быть не более 200 символов");
         }
+    }
+
+    public static void throwIfAlreadyExist(Film filmToAdd) {
+        boolean exists = InMemoryFilmStorage.films.values().stream()
+                .anyMatch(film -> isAlreadyExist(filmToAdd, film));
+        if (exists) {
+            log.warn("Фильм к добавлению: {}", filmToAdd);
+            throw new ConflictException("HTTP ERROR 409: Такой фильм уже существует в коллекции");
+        }
+    }
+
+    private static boolean isAlreadyExist(Film filmToAdd, Film film) {
+        return filmToAdd.getName().equals(film.getName()) &&
+                filmToAdd.getReleaseDate().equals(film.getReleaseDate());
     }
 }

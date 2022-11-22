@@ -2,9 +2,6 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.ConflictException;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.*;
@@ -14,7 +11,7 @@ import java.util.*;
 public class InMemoryUserStorage implements UserStorage {
 
     private int id = 1;
-    private static final Map<Integer, User> users = new HashMap<>();
+    public static final Map<Integer, User> users = new HashMap<>();
 
     @Override
     public User create(User user) {
@@ -51,22 +48,7 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public boolean isNotExist(int id) {
         if (!users.containsKey(id)) {
-            throw new NotFoundException("HTTP ERROR 404: Пользователь не найден");
         }
         return false;
-    }
-
-    public static void throwIfAlreadyExist(User userToAdd) {
-        boolean exists = users.values().stream()
-                .anyMatch(user -> isAlreadyExist(userToAdd, user));
-        if (exists) {
-            log.warn("Введенный Email пользователя: '{}'", userToAdd);
-            throw new ConflictException("HTTP ERROR 409: Пользователь с таким Email или логином уже существует");
-        }
-    }
-
-    private static boolean isAlreadyExist(User userToAdd, User user) {
-        return userToAdd.getLogin().equals(user.getLogin()) ||
-                userToAdd.getEmail().equals(user.getEmail());
     }
 }
