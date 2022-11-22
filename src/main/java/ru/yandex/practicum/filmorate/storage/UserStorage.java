@@ -15,5 +15,5 @@ public interface UserStorage {
 
     List<User> findAll();
 
-    User isExist (int id);
+    boolean isNotExist (int id);
 }

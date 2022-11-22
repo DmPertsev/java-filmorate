@@ -15,5 +15,5 @@ public interface FilmStorage {
 
     List<Film> findAll();
 
-    Film isExist (int id);
+    boolean isNotExist (int id);
 }

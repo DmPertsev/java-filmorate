@@ -50,15 +50,10 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film isExist(int id) {
-        Film film = films.get(id);
+    public boolean isNotExist(int id) {
         if (!films.containsKey(id)) {
             throw new NotFoundException("HTTP ERROR 404: Фильм не найден");
         }
-        return film;
-    }
-
-    public static Map<Integer, Film> getFilms() {
-        return films;
+        return true;
     }
 }

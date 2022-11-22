@@ -23,21 +23,21 @@ public class FilmService {
 
     private static final LocalDate DATE_BEFORE = LocalDate.of(1895, 12, 28);
 
-    Map<Integer, Film> filmsInUse = InMemoryFilmStorage.getFilms();
-
     private final FilmStorage filmStorage;
     public Film create(Film film) {
         throwIfReleaseDateNotValid(film);
-        throwIfAlreadyExist(film);
+        if (!filmStorage.isNotExist(film.getId())) {
+            throw new ConflictException("HTTP ERROR 409: Такой фильм уже существует в коллекции");
+        }
+        //throwIfAlreadyExist(film);
         return filmStorage.create(film);
     }
 
     public Film update(Film film) {
         throwIfReleaseDateNotValid(film);
-        if (!filmsInUse.containsKey(film.getId())) {
+        if (filmStorage.isNotExist(film.getId())) {
             throw new NotFoundException("HTTP ERROR 404: Невозможно обновить данные о фильме, так как такого фильма у нас нет");
         }
-        throwIfAlreadyExist(film);
         return filmStorage.update(film);
     }
 
@@ -47,26 +47,26 @@ public class FilmService {
     }
 
     public Film findById(int id) {
-        filmStorage.isExist(id);
+        filmStorage.isNotExist(id);
         log.info("Фильм с id: {} отправлен", id);
         return filmStorage.findById(id);
     }
 
     public Film deleteById(int id) {
-        filmStorage.isExist(id);
+        filmStorage.isNotExist(id);
         log.info("Фильм с id: {} удален", id);
         return filmStorage.deleteById(id);
     }
 
     public Film addLike(int filmId, int userId) {
-        filmStorage.isExist(filmId);
+        filmStorage.isNotExist(filmId);
         filmStorage.findById(filmId).getUsersLikes().add(userId);
         log.info("Пользователь с id: {} поставил лайк фильму с id {}", userId, filmId);
         return filmStorage.findById(filmId);
     }
 
     public Film removeLike(int filmId, int userId) {
-        filmStorage.isExist(filmId);
+        filmStorage.isNotExist(filmId);
         if (!filmStorage.findById(filmId).getUsersLikes().contains(userId)) {
             throw new NotFoundException("HTTP ERROR 404: Нет лайка от пользователя");
         }
@@ -103,8 +103,8 @@ public class FilmService {
         }
     }
 
-    private void throwIfAlreadyExist(Film filmToAdd) {
-        boolean exists = filmsInUse.values().stream()
+    /*private void throwIfAlreadyExist(Film filmToAdd) {
+        boolean exists = films.values().stream()
                 .anyMatch(film -> isAlreadyExist(filmToAdd, film));
         if (exists) {
             log.warn("Фильм к добавлению: {}", filmToAdd);
@@ -116,4 +116,6 @@ public class FilmService {
         return filmToAdd.getName().equals(film.getName()) &&
                 filmToAdd.getReleaseDate().equals(film.getReleaseDate());
     }
+
+     */
 }

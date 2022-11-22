@@ -47,15 +47,10 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User isExist(int id) {
-        User user = users.get(id);
+    public boolean isNotExist(int id) {
         if (!users.containsKey(id)) {
             throw new NotFoundException("HTTP ERROR 404: Пользователь не найден");
         }
-        return user;
-    }
-
-    public static Map<Integer, User> getUsers() {
-        return users;
+        return true;
     }
 }

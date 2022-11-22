@@ -22,22 +22,22 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserService {
 
-    Map<Integer, User> usersInUse = InMemoryUserStorage.getUsers();
-
     private final UserStorage userStorage;
 
     public User create(User user) {
         throwIfUserPrintWrongInfo(user);
-        throwIfUserAlreadyExist(user);
+        if (!userStorage.isNotExist(user.getId())) {
+            throw new ConflictException("HTTP ERROR 409: Такой фильм уже существует в коллекции");
+        }
+        //throwIfUserAlreadyExist(user);
         return userStorage.create(user);
     }
 
     public User update(User user) {
         throwIfUserPrintWrongInfo(user);
-        if (!usersInUse.containsKey(user.getId())) {
+        if (userStorage.isNotExist(user.getId())) {
             throw new NotFoundException("HTTP ERROR 404: Невозможно обновить данные, так как пользователя не существует");
         }
-        throwIfUserAlreadyExist(user);
         return userStorage.update(user);
     }
 
@@ -47,20 +47,20 @@ public class UserService {
     }
 
     public User findById(int id) {
-        userStorage.isExist(id);
+        userStorage.isNotExist(id);
         log.info("Пользователь с id: '{}' отправлен", id);
         return userStorage.findById(id);
     }
 
     public User deleteById(int id) {
-        userStorage.isExist(id);
+        userStorage.isNotExist(id);
         log.info("Пользователь с id: '{}' удален", id);
         return userStorage.deleteById(id);
     }
 
     public List<User> addFriendship(int firstId, int secondId) {
-        userStorage.isExist(firstId);
-        userStorage.isExist(secondId);
+        userStorage.isNotExist(firstId);
+        userStorage.isNotExist(secondId);
         if (userStorage.findById(firstId).getFriends().contains(secondId)) {
             throw new InternalException("Пользователи уже и так являются друзьями");
         }
@@ -73,8 +73,8 @@ public class UserService {
     }
 
     public List<User> removeFriendship(int firstId, int secondId) {
-        userStorage.isExist(firstId);
-        userStorage.isExist(secondId);
+        userStorage.isNotExist(firstId);
+        userStorage.isNotExist(secondId);
         if (!userStorage.findById(firstId).getFriends().contains(secondId)) {
             throw new InternalException("Пользователи не являются друзьями");
         }
@@ -87,7 +87,7 @@ public class UserService {
     }
 
     public List<User> getFriendsListById(int id) {
-        userStorage.isExist(id);
+        userStorage.isNotExist(id);
         log.info("Успех! Запрос получения списка друзей пользователя '{}' выполнен успешно :)",
                 userStorage.findById(id).getName());
         return userStorage.findById(id).getFriends().stream()
@@ -96,8 +96,8 @@ public class UserService {
     }
 
     public List<User> getCommonFriendsList(int firstId, int secondId) {
-        userStorage.isExist(firstId);
-        userStorage.isExist(secondId);
+        userStorage.isNotExist(firstId);
+        userStorage.isNotExist(secondId);
         User firstUser = userStorage.findById(firstId);
         User secondUser = userStorage.findById(secondId);
         log.info("Список общих друзей пользователей: '{}' и '{}' успешено отправлен",
@@ -131,7 +131,7 @@ public class UserService {
         }
     }
 
-    private void throwIfUserAlreadyExist(User userToAdd) {
+    /*private void throwIfUserAlreadyExist(User userToAdd) {
         boolean exists = usersInUse.values().stream()
                 .anyMatch(user -> isAlreadyExist(userToAdd, user));
         if (exists) {
@@ -144,4 +144,6 @@ public class UserService {
         return userToAdd.getLogin().equals(user.getLogin()) ||
                 userToAdd.getEmail().equals(user.getEmail());
     }
+
+     */
 }
