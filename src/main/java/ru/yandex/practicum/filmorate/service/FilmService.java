@@ -26,10 +26,7 @@ public class FilmService {
     private final FilmStorage filmStorage;
     public Film create(Film film) {
         throwIfReleaseDateNotValid(film);
-        if (!filmStorage.isNotExist(film.getId())) {
-            throw new ConflictException("HTTP ERROR 409: Такой фильм уже существует в коллекции");
-        }
-        //throwIfAlreadyExist(film);
+        InMemoryFilmStorage.throwIfAlreadyExist(film);
         return filmStorage.create(film);
     }
 
@@ -102,20 +99,4 @@ public class FilmService {
             throw new BadRequestException("HTTP ERROR 400: Описание должно быть не более 200 символов");
         }
     }
-
-    /*private void throwIfAlreadyExist(Film filmToAdd) {
-        boolean exists = films.values().stream()
-                .anyMatch(film -> isAlreadyExist(filmToAdd, film));
-        if (exists) {
-            log.warn("Фильм к добавлению: {}", filmToAdd);
-            throw new ConflictException("HTTP ERROR 409: Такой фильм уже существует в коллекции");
-        }
-    }
-
-    private boolean isAlreadyExist(Film filmToAdd, Film film) {
-        return filmToAdd.getName().equals(film.getName()) &&
-                filmToAdd.getReleaseDate().equals(film.getReleaseDate());
-    }
-
-     */
 }
