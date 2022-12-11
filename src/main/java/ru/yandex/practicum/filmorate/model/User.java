@@ -28,4 +28,5 @@ public class User {
     @NotNull
     @PastOrPresent
     private LocalDate birthday;
+    private StatusRelation statusRelation;
 }
