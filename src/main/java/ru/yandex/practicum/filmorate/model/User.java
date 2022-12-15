@@ -1,32 +1,52 @@
 package ru.yandex.practicum.filmorate.model;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-
-import javax.validation.constraints.*;
+import javax.validation.Valid;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.PastOrPresent;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
+import java.util.Objects;
 
 @Getter
 @Setter
 @AllArgsConstructor()
 @NoArgsConstructor
+@Valid
 public class User {
 
-    private Set<Integer> friends = new HashSet<>();
-
     private int id;
-    @NotNull
-    @NotBlank
-    @Email
+    @Email(message = "invalid email")
     private String email;
     @NotNull
-    @NotBlank
+    @NotBlank(message = "login must have some letters")
     private String login;
     private String name;
-    @NotNull
     @PastOrPresent
     private LocalDate birthday;
-    private StatusRelation statusRelation;
+    private List<Integer> friends;
+    public boolean addFriendship(Integer id) {
+        return friends.add(id);
+    }
+    public boolean removeFriendship(Integer id) {
+        return friends.remove(id);
+    }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {return true;}
+        if (!(o instanceof User)) {return false;}
+        User user = (User) o;
+        return getId() == user.getId();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId());
+    }
 }
