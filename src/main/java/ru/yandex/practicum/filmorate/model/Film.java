@@ -24,7 +24,7 @@ public class Film {
     @NotBlank
     private String name;
     @NotBlank
-    @Size(min = 10, max = 200, message = "description must be between 10 and 200 letters")
+    @Size(min = 10, max = 200, message = "description length must be between 10 and 200 letters")
     private String description;
     @NotNull
     private LocalDate releaseDate;
@@ -33,6 +33,7 @@ public class Film {
     private int rate;
     @NotNull
     private Mpa mpa;
+
     private List<Genre> genres = new ArrayList<>();
     private List<Integer> likes = new ArrayList<>();
 

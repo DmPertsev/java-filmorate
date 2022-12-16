@@ -17,7 +17,6 @@ import ru.yandex.practicum.filmorate.service.GenreService;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.sql.*;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -44,7 +43,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> getAllFilms() {
+    public List<Film> getAll() {
         String sqlQuery = "SELECT * FROM FILMS " +
                 "INNER JOIN RATING_MPA ON FILMS.RATING_ID = RATING_MPA.RATING_ID ";
         return jdbcTemplate.query(sqlQuery, (resultSet, rowNum) -> makeFilm(resultSet));
@@ -111,14 +110,14 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public boolean deleteFilm(Film film) {
+    public boolean delete(Film film) {
         String sqlQuery = "DELETE FROM FILMS WHERE FILM_ID = ?";
         jdbcTemplate.update(sqlQuery, film.getId());
         return true;
     }
 
     @Override
-    public List<Film> findAll() {
+    public List<Film> getFilms() {
         String sqlQuery = "SELECT * FROM FILMS " +
                 "INNER JOIN RATING_MPA ON FILMS.RATING_ID = RATING_MPA.RATING_ID ";
         return jdbcTemplate.query(sqlQuery, (resultSet, rowNum) -> makeFilm(resultSet));

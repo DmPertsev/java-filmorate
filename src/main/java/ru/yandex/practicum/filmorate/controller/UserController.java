@@ -25,21 +25,21 @@ public class UserController {
     @PutMapping
     public User update(@Valid @RequestBody User user) {
         userService.setUserNameByLogin(user, "Обновлен");
-        log.info("Пользователь с id: {} обновлен", user.getId());
+        log.info("Пользователь id: {} обновлен", user.getId());
         return userService.update(user);
     }
 
     @GetMapping
     public Collection<User> findAll() {
-        log.info("GET по адресу: /users");
+        log.info("GET запрос по адресу: /users");
         return userService.findAll();
     }
 
     @GetMapping("/{id}")
     public User findById(@PathVariable String id) {
-        log.info("GET по адресу: /users/{}", id);
-        log.info("Пользователь с id: '{}'", id);
-        return userService.findById(Integer.valueOf(id));
+        log.info("GET запрос по адресу: /users/{}", id);
+        log.info("Пользователь id: '{}'", id);
+        return userService.getUserById(id);
     }
 
     @DeleteMapping("/{id}")
@@ -50,24 +50,26 @@ public class UserController {
     @PutMapping("/{id}/friends/{friendId}")
     public void addFriendship(@PathVariable String id, @PathVariable String friendId) {
         userService.addFriendship(id, friendId);
-        log.info("Пользователь id: {} обновлен, добавлен друг id: {}", id, friendId);
+        log.info("Пользователь id: {} обновлён, добавлен друг id: {}", id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
     public void removeFriendship(@PathVariable String id, @PathVariable String friendId) {
         userService.removeFriendship(id, friendId);
-        log.info("Пользователь id: {} обновлен, удалён друг id: {}", id, friendId);
+        log.info("Пользователь id: {} обновлён, удален друг id: {}", id, friendId);
     }
 
+
     @GetMapping("/{id}/friends")
-    public Collection<User>  findFriends(@PathVariable Integer id) {
-        log.info("GET по адресу: /users/{}/friends", id);
+    public Collection<User> findFriends(@PathVariable Integer id) {
+        log.info("GET запрос по адресу: /users/{}/friends", id);
         return userService.getUserFriends(String.valueOf(id));
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
     public Collection<User> getCommonFriendsList(@PathVariable String id, @PathVariable String otherId) {
-        log.info("GET по адресу: '/users/{}/friends/common/{}'", id, otherId);
+        log.info("GET запрос по адресу: '/users/{}/friends/common/{}'", id, otherId);
         return userService.getCommonFriendsList(id, otherId);
     }
+
 }

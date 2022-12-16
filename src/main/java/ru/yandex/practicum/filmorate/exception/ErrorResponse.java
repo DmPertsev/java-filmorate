@@ -8,13 +8,13 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class ErrorResponse {
-    private String error;
+    private String errorMessage;
 
-    public ErrorResponse (String error) {
-        this.error = error;
+    public ErrorResponse(String error) {
+        this.errorMessage = error;
     }
 
-    public String getError() {
-        return error;
+    public String getErrorMessage() {
+        return errorMessage;
     }
 }

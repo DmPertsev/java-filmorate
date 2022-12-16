@@ -2,14 +2,10 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.InternalException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.time.LocalDate;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,9 +16,7 @@ import java.util.stream.Collectors;
 public class InMemoryFilmStorage implements FilmStorage {
 
     private int id = 1;
-    private static final LocalDate DATE_BEFORE = LocalDate.of(1895, 12, 28);
     private static final Map<Integer, Film> films = new HashMap<>();
-
 
     @Override
     public Film create(Film film) {
@@ -40,8 +34,9 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> getAllFilms() {
-        Collection<Film> allFilms = films.values();
+    public List<Film> getAll() {
+
+        List<Film> allFilms = (List<Film>) films.values();
         if (allFilms.isEmpty()) {
             allFilms.addAll(films.values());
         }
@@ -54,14 +49,14 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public boolean deleteFilm(Film film) {
-        films.remove(film.getId());
-        return true;
+    public List<Film> getFilms() {
+        return (List<Film>) films;
     }
 
     @Override
-    public List<Film> findAll() {
-        return (List<Film>) films;
+    public boolean delete(Film film) {
+        films.remove(film.getId());
+        return true;
     }
 
     @Override
@@ -82,7 +77,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public List<Film> getPopularFilms(Integer size) {
-        return getAllFilms()
+        return getAll()
                 .stream()
                 .filter(film -> film.getLikes() != null)
                 .sorted((t1, t2) -> t2.getLikes().size() - t1.getLikes().size())

@@ -10,12 +10,13 @@ public interface FilmStorage {
     Film create(Film film);
     Film update(Film film);
     Film findById(int id);
-    Collection<Film> getAllFilms();
-    List<Film> findAll();
-    boolean deleteFilm(Film film);
-    boolean addLike(int filmId, int userId);
-    boolean removeLike(int filmId, int userId);
+
+    List<Film> getAll();
+    List<Film> getFilms();
     Collection<Film> getPopularFilms(Integer count);
 
+    boolean delete(Film film);
+    boolean addLike(int filmId, int userId);
+    boolean removeLike(int filmId, int userId);
     boolean isNotExist (int id);
 }

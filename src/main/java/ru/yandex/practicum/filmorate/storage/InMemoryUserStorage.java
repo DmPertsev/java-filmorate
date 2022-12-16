@@ -7,9 +7,9 @@ import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.time.LocalDate;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Component
 @Slf4j
@@ -28,14 +28,22 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User update(User user) {
+        if (!users.containsKey(user.getId())) {
+            throw new ObjectNotFoundException("Невозможно обновить данные, так как пользователя не существует");
+        }
         users.put(user.getId(), user);
-        log.info("Данные пользователя с id: {}, логином: {} успешно обновлены", user.getId(), user.getLogin());
+        log.info("Данные пользователя с id: {}, логином: {} успешно обновлена", user.getId(), user.getLogin());
         return user;
     }
 
     @Override
     public List<User> findAll() {
-        return new ArrayList<>(users.values());
+        return (List<User>) users.values();
+    }
+
+    @Override
+    public Map<Integer, User> getUsers() {
+        return users;
     }
 
     @Override
@@ -57,10 +65,20 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public Map<Integer, User> getUsers() {
-        return users;
+    public boolean addFriendship(Integer userId, Integer friendId) {
+        User user = users.get(userId);
+        User friend = users.get(friendId);
+        user.addFriendship(friendId);
+        friend.addFriendship(userId);
+        update(user);
+        update(friend);
+        return true;
     }
 
+    @Override
+    public boolean removeFriendship(Integer userId, Integer friendId) {
+        return false;
+    }
 
     @Override
     public boolean isNotExist(int id) {
@@ -82,22 +100,6 @@ public class InMemoryUserStorage implements UserStorage {
     private static boolean isAlreadyExist(User userToAdd, User user) {
         return userToAdd.getLogin().equals(user.getLogin()) ||
                 userToAdd.getEmail().equals(user.getEmail());
-    }
-
-    @Override
-    public boolean addFriendship(Integer userId, Integer friendId) {
-        User user = users.get(userId);
-        User friend = users.get(friendId);
-        user.addFriendship(friendId);
-        friend.addFriendship(userId);
-        update(user);
-        update(friend);
-        return true;
-    }
-
-    @Override
-    public boolean removeFriendship(Integer userId, Integer friendId) {
-        return false;
     }
 
     @Override

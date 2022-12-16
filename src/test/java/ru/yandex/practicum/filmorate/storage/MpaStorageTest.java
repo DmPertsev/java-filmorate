@@ -9,7 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -22,7 +22,7 @@ class MpaStorageTest {
 
     @Test
     public void getAllMpaTest() {
-        Collection<Mpa> mpa = mpaStorage.findAll();
+        List<Mpa> mpa = mpaStorage.findAll();
         Assertions.assertThat(mpa)
                 .extracting(Mpa::getName)
                 .containsAll(Arrays.asList("G", "PG", "PG-13", "R", "NC-17"));
@@ -30,7 +30,7 @@ class MpaStorageTest {
 
     @Test
     public void getMpaByIdTest() {
-        Optional<Mpa> mpaOptional = Optional.ofNullable(mpaStorage.findMpaById(1));
+        Optional<Mpa> mpaOptional = Optional.ofNullable(mpaStorage.findById(1));
         assertThat(mpaOptional)
                 .isPresent()
                 .hasValueSatisfying(mpa ->

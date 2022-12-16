@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.service.MpaService;
 
-import java.util.Collection;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,14 +19,14 @@ public class MpaController {
     private final MpaService mpaService;
 
     @GetMapping
-    public Collection<Mpa> findAll() {
-        log.info("Получен запрос GET по адресу: '/mpa'");
+    public List<Mpa> findAll() {
+        log.info("GET запрос по адресу: '/mpa'");
         return mpaService.findAll();
     }
 
     @GetMapping("/{id}")
-    public Mpa findMpaById(@PathVariable String id) {
-        log.info("Получен запрос GET по адресу: '/mpa/{}'", id);
-        return mpaService.findMpaById(id);
+    public Mpa findById(@PathVariable String id) {
+        log.info("GET запрос по адресу: '/mpa/{}'", id);
+        return mpaService.findById(id);
     }
 }

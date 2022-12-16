@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
+import java.util.List;
 
 @RestController
 @RequestMapping("/films")
@@ -18,24 +19,24 @@ public class FilmController {
 
     @PostMapping
     public Film create(@RequestBody Film film) {
-        log.info("POST запрос: /films добавить фильм: Данные запроса: '{}'", film);
+        log.info("POST запрос по адресу /films создание нового фильма: Данные запроса: '{}'", film);
         return filmService.create(film);
     }
 
     @PutMapping
     public Film update(@RequestBody Film film) {
-        log.info("Обновлен фильм id: '{}' '{}'", film.getId(), film);
+        log.info("Обновление фильма id '{}' '{}'", film.getId(), film);
         return filmService.update(film);
     }
 
     @GetMapping
-    public Collection<Film> findAll() {
-        log.info("GET запрос: '/films'");
-        return filmService.findAll();
+    public List<Film> getAll() {
+        log.info("GET запрос по адресу '/films'");
+        return filmService.getAll();
     }
 
     @GetMapping("/{id}")
-    public Film getById(@PathVariable String id) {
+    public Film findById(@PathVariable String id) {
         log.info("GET запрос по адресу '/films/{}'", id);
         return filmService.findById(id);
     }

@@ -115,26 +115,26 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
+    public boolean isNotExist(int id) {
+        return false;
+    }
+
+    @Override
     public Map<Integer, User> getUsers() {
         return null;
     }
 
     @Override
     public User getUser(Integer id) {
-        String sqlUser = "SELECT * FROM USERS WHERE USER_ID = ?";
+        String sqlQuery = "SELECT * FROM USERS WHERE USER_ID = ?";
         User user;
         try {
-            user = jdbcTemplate.queryForObject(sqlUser, (rs, rowNum) -> makeUser(rs), id);
+            user = jdbcTemplate.queryForObject(sqlQuery, (rs, rowNum) -> makeUser(rs), id);
         } catch (EmptyResultDataAccessException e) {
             throw new NotFoundException("Пользователь с id: " +
                     id + " не зарегистрирован!");
         }
         return user;
-    }
-
-    @Override
-    public boolean isNotExist(int id) {
-        return false;
     }
 
     private User makeUser(ResultSet resultSet) throws SQLException {
@@ -149,7 +149,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     private List<Integer> getUserFriends(int userId) {
-        String sqlGetFriends = "SELECT FRIEND_ID FROM FRIENDSHIP WHERE USER_ID = ?";
-        return jdbcTemplate.queryForList(sqlGetFriends, Integer.class, userId);
+        String sqlQuery = "SELECT FRIEND_ID FROM FRIENDSHIP WHERE USER_ID = ?";
+        return jdbcTemplate.queryForList(sqlQuery, Integer.class, userId);
     }
 }

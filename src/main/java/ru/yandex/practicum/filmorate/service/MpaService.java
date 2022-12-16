@@ -5,20 +5,20 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.MpaStorage;
 
-import java.util.Collection;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class MpaService {
     private final MpaStorage mpaStorage;
 
-    public Collection<Mpa> findAll() {
+    public List<Mpa> findAll() {
         return mpaStorage.findAll();
     }
 
-    public Mpa findMpaById(String strId) {
+    public Mpa findById(String strId) {
         int id = parseId(strId);
-        return mpaStorage.findMpaById(id);
+        return mpaStorage.findById(id);
     }
 
     private Integer parseId(final String strId) {

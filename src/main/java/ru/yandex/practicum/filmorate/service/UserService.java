@@ -4,23 +4,24 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.BadRequestException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.UserValidationException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Service
 @Slf4j
 public class UserService {
-
     private int counter = 1;
     private final Validator validator;
     private final UserStorage userStorage;
@@ -31,45 +32,34 @@ public class UserService {
         this.userStorage = userStorage;
     }
 
+    public Collection<User> findAll() {
+        log.info("Список пользователей отправлен");
+        return userStorage.findAll();
+    }
+
     public User create(User user) {
         throwIfUserPrintWrongInfo(user);
         InMemoryUserStorage.throwIfAlreadyExist(user);
-        log.info("Новый пользователь");
+        validate(user);
+        log.info("Создан пользователь");
         return userStorage.create(user);
     }
 
     public User update(User user) {
         throwIfUserPrintWrongInfo(user);
-        if (userStorage.isNotExist(user.getId())) {
-            throw new NotFoundException("HTTP ERROR 404: Невозможно обновить данные, так как пользователя не существует");
-        }
+        validate(user);
         log.info("Обновлен пользователь");
         return userStorage.update(user);
     }
 
-    public List<User> findAll() {
-        log.info("Список пользователей отправлен");
-        return userStorage.findAll();
-    }
-
     public User findById(Integer id) {
         userStorage.isNotExist(id);
-        if (!userStorage.getUsers().containsKey(id)) {
-            throw new NotFoundException("HTTP ERROR 404: Невозможно найти пользователя, так как пользователя не существует");
-        }
-
         log.info("Пользователь с id: '{}' отправлен", id);
         return userStorage.findById(id);
     }
 
     public User deleteById(int id) {
-
         userStorage.isNotExist(id);
-
-        if (!userStorage.getUsers().containsKey(id)) {
-            throw new NotFoundException("HTTP ERROR 404: Невозможно удалить пользователя, так как пользователя не существует");
-        }
-
         log.info("Пользователь с id: '{}' удален", id);
         return userStorage.deleteById(id);
     }
@@ -97,34 +87,21 @@ public class UserService {
         return friends;
     }
 
-    public List<User> getCommonFriendsList(final String supposedUserId, final String supposedOtherId) {
-        User user = getUserStored(supposedUserId);
-        User otherUser = getUserStored(supposedOtherId);
-        Collection<User> commonFriends = new HashSet<>();
-        for (Integer id : user.getFriends()) {
-            if (otherUser.getFriends().contains(id)) {
-                commonFriends.add(userStorage.findById(id));
-            }
-        }
-        return (List<User>) commonFriends;
-    }
-
-    public User findById(final String supposedId) {
+    public User getUserById(final String supposedId) {
         return getUserStored(supposedId);
     }
 
     private User getUserStored(final String supposedId) {
         final int userId = parseId(supposedId);
         if (userId == Integer.MIN_VALUE) {
-            throw new NotFoundException(String.format("HTTP ERROR 404: Не удалось найти id пользователя: %d", supposedId));
+            throw new NotFoundException(String.format("Не удалось найти id пользователя: %d", supposedId));
         }
         User user = userStorage.getUser(userId);
         if (user == null) {
-            throw new NotFoundException(String.format(" HTTP ERROR 404: Пользователь с id: '%d' не зарегистрирован!", userId));
+            throw new NotFoundException(String.format("Пользователь с id: '%d' не зарегистрирован!", userId));
         }
         return user;
     }
-
 
     private Integer parseId(final String id) {
         try {
@@ -141,7 +118,28 @@ public class UserService {
         log.debug("{} пользователь: '{}', email: '{}'", text, user.getName(), user.getEmail());
     }
 
-    private void throwIfUserPrintWrongInfo(final User user) {
+    void throwIfUserPrintWrongInfo(User user) {
+        if (user.getLogin().contains(" ") || user.getLogin().isBlank()) {
+            log.warn("Введенный Логин пользователя: '{}'", user.getLogin());
+            throw new BadRequestException("HTTP ERROR 400: Логин не может быть пустым");
+        }
+        if (user.getName() == null || user.getName().equals("")) {
+            user.setName(user.getLogin());
+            log.warn("Не заполнено Имя пользователя заменено на Логин: '{}'", user.getName());
+        }
+
+        if (user.getBirthday().isAfter(LocalDate.now())) {
+            log.warn("Указанная Дата рождения: '{}'", user.getBirthday());
+            throw new ValidationException("Дата рождения не может быть в будущем");
+        }
+
+        if (user.getEmail().isBlank() || user.getEmail() == null || user.getEmail().equals(" ")) {
+            log.warn("Введенный Email пользователя: '{}'", user.getEmail());
+            throw new BadRequestException("HTTP ERROR 400:Email не может быть пустым");
+        }
+    }
+
+    private void validate(final User user) {
         if (user.getName() == null) {
             user.setName(user.getLogin());
             log.info("UserService: Поле name не задано. Установлено значение {} из поля login", user.getLogin());
@@ -163,5 +161,15 @@ public class UserService {
         }
     }
 
-
+    public Collection<User> getCommonFriendsList(final String supposedUserId, final String supposedOtherId) {
+        User user = getUserStored(supposedUserId);
+        User otherUser = getUserStored(supposedOtherId);
+        Collection<User> commonFriends = new HashSet<>();
+        for (Integer id : user.getFriends()) {
+            if (otherUser.getFriends().contains(id)) {
+                commonFriends.add(userStorage.getUser(id));
+            }
+        }
+        return commonFriends;
+    }
 }

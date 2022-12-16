@@ -12,7 +12,7 @@ import ru.yandex.practicum.filmorate.storage.dao.FilmDbStorage;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -80,9 +80,9 @@ class FilmStorageTest {
     public void deleteFilmTest() {
         Film addedFilm1 = filmStorage.create(film1);
         Film addedFilm2 = filmStorage.create(film2);
-        Collection<Film> beforeDelete = filmStorage.getAllFilms();
-        filmStorage.deleteFilm(addedFilm1);
-        Collection<Film> afterDelete = filmStorage.getAllFilms();
+        List<Film> beforeDelete = filmStorage.getAll();
+        filmStorage.delete(addedFilm1);
+        List<Film> afterDelete = filmStorage.getAll();
         assertEquals(beforeDelete.size() - 1, afterDelete.size());
     }
 }
