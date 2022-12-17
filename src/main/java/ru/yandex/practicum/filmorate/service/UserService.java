@@ -2,14 +2,11 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.BadRequestException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.UserValidationException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import javax.validation.ConstraintViolation;
@@ -26,8 +23,9 @@ public class UserService {
     private final Validator validator;
     private final UserStorage userStorage;
 
+
     @Autowired
-    public UserService(Validator validator, @Qualifier("UserDbStorage") UserStorage userStorage) {
+    public UserService(Validator validator, UserStorage userStorage) {
         this.validator = validator;
         this.userStorage = userStorage;
     }
@@ -39,7 +37,6 @@ public class UserService {
 
     public User create(User user) {
         throwIfUserPrintWrongInfo(user);
-        InMemoryUserStorage.throwIfAlreadyExist(user);
         validate(user);
         log.info("Создан пользователь");
         return userStorage.create(user);
@@ -47,19 +44,26 @@ public class UserService {
 
     public User update(User user) {
         throwIfUserPrintWrongInfo(user);
+        if (userStorage.isNotExist(user.getId())) {
+            throw new NotFoundException("HTTP ERROR 404: Невозможно обновить данные о пользователе");
+        }
         validate(user);
         log.info("Обновлен пользователь");
         return userStorage.update(user);
     }
 
     public User findById(Integer id) {
-        userStorage.isNotExist(id);
+        if (!userStorage.findUsers().containsKey(id)) {
+            throw new NotFoundException("HTTP ERROR 404: Пользователь не найден");
+        }
         log.info("Пользователь с id: '{}' отправлен", id);
         return userStorage.findById(id);
     }
 
     public User deleteById(int id) {
-        userStorage.isNotExist(id);
+        if (!userStorage.findUsers().containsKey(id)) {
+            throw new NotFoundException("HTTP ERROR 404: Пользователь не найден. Невозможно удалить неизветсного пользователя");
+        }
         log.info("Пользователь с id: '{}' удален", id);
         return userStorage.deleteById(id);
     }
@@ -82,7 +86,7 @@ public class UserService {
         User user = getUserStored(userId);
         Collection<User> friends = new HashSet<>();
         for (Integer id : user.getFriends()) {
-            friends.add(userStorage.getUser(id));
+            friends.add(userStorage.findUser(id));
         }
         return friends;
     }
@@ -96,7 +100,7 @@ public class UserService {
         if (userId == Integer.MIN_VALUE) {
             throw new NotFoundException(String.format("Не удалось найти id пользователя: %d", supposedId));
         }
-        User user = userStorage.getUser(userId);
+        User user = userStorage.findUser(userId);
         if (user == null) {
             throw new NotFoundException(String.format("Пользователь с id: '%d' не зарегистрирован!", userId));
         }
@@ -154,7 +158,7 @@ public class UserService {
             for (ConstraintViolation<User> userConstraintViolation : violations) {
                 messageBuilder.append(userConstraintViolation.getMessage());
             }
-            throw new UserValidationException("Ошибка валидации Пользователя: " + messageBuilder, violations);
+            throw new ValidationException("Ошибка валидации Пользователя: " + messageBuilder);
         }
         if (user.getId() == 0) {
             user.setId(counter++);
@@ -167,7 +171,7 @@ public class UserService {
         Collection<User> commonFriends = new HashSet<>();
         for (Integer id : user.getFriends()) {
             if (otherUser.getFriends().contains(id)) {
-                commonFriends.add(userStorage.getUser(id));
+                commonFriends.add(userStorage.findUser(id));
             }
         }
         return commonFriends;

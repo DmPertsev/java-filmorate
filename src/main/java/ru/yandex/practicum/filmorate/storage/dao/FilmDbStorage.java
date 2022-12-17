@@ -36,14 +36,14 @@ public class FilmDbStorage implements FilmStorage {
         try {
             film = jdbcTemplate.queryForObject(sqlQuery, (rs, rowNum) -> makeFilm(rs), filmId);
         } catch (EmptyResultDataAccessException exception) {
-            throw new NotFoundException(String.format("Фильма с id=%d нет в базе данных", filmId));
+            throw new NotFoundException(String.format("HTTP ERROR 404: Фильма с id=%d нет в базе данных", filmId));
         }
         log.info("Найден фильм: {} {}", film.getId(), film.getName());
         return film;
     }
 
     @Override
-    public List<Film> getAll() {
+    public List<Film> findAll() {
         String sqlQuery = "SELECT * FROM FILMS " +
                 "INNER JOIN RATING_MPA ON FILMS.RATING_ID = RATING_MPA.RATING_ID ";
         return jdbcTemplate.query(sqlQuery, (resultSet, rowNum) -> makeFilm(resultSet));
@@ -67,7 +67,6 @@ public class FilmDbStorage implements FilmStorage {
         }, keyHolder);
         int id = Objects.requireNonNull(keyHolder.getKey()).intValue();
         film.setId(id);
-
         if (!film.getGenres().isEmpty()) {
             genreService.addFilmGenres(film.getId(), film.getGenres());
         }
@@ -117,13 +116,6 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getFilms() {
-        String sqlQuery = "SELECT * FROM FILMS " +
-                "INNER JOIN RATING_MPA ON FILMS.RATING_ID = RATING_MPA.RATING_ID ";
-        return jdbcTemplate.query(sqlQuery, (resultSet, rowNum) -> makeFilm(resultSet));
-    }
-
-    @Override
     public boolean addLike(int filmId, int userId) {
         String sqlQuery = "SELECT * FROM LIKES WHERE USER_ID = ? AND FILM_ID = ?";
         SqlRowSet existLike = jdbcTemplate.queryForRowSet(sqlQuery, userId, filmId);
@@ -144,9 +136,9 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getPopularFilms(Integer count) {
-        String sqlQuery = "SELECT COUNT(L.LIKE_ID) AS like_rate" +
-                ",FILMS.FILM_ID, FILMS.FILM_NAME, FILMS.DESCRIPTION, " +
+    public List<Film> findPopularFilms(Integer count) {
+        String sqlQuery = "SELECT COUNT(L.LIKE_ID) AS like_rate, " +
+                "FILMS.FILM_ID, FILMS.FILM_NAME, FILMS.DESCRIPTION, " +
                 "FILMS.RELEASE_DATE, FILMS.DURATION, FILMS.RATE, R.RATING_ID, R.MPA_NAME, R.DESCRIPTION FROM FILMS " +
                 "LEFT JOIN LIKES AS L ON L.FILM_ID = FILMS.FILM_ID " +
                 "INNER JOIN RATING_MPA AS R ON R.RATING_ID = FILMS.RATING_ID " +
@@ -161,7 +153,7 @@ public class FilmDbStorage implements FilmStorage {
         return false;
     }
 
-    private Film makeFilm(ResultSet resultSet) throws SQLException {
+        private Film makeFilm(ResultSet resultSet) throws SQLException {
         int filmId = resultSet.getInt("FILM_ID");
         Film film = new Film(
                 filmId,

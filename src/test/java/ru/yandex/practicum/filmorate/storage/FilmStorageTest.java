@@ -80,9 +80,9 @@ class FilmStorageTest {
     public void deleteFilmTest() {
         Film addedFilm1 = filmStorage.create(film1);
         Film addedFilm2 = filmStorage.create(film2);
-        List<Film> beforeDelete = filmStorage.getAll();
+        List<Film> beforeDelete = filmStorage.findAll();
         filmStorage.delete(addedFilm1);
-        List<Film> afterDelete = filmStorage.getAll();
+        List<Film> afterDelete = filmStorage.findAll();
         assertEquals(beforeDelete.size() - 1, afterDelete.size());
     }
 }

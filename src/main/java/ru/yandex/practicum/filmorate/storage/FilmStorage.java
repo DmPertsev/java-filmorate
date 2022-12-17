@@ -11,9 +11,8 @@ public interface FilmStorage {
     Film update(Film film);
     Film findById(int id);
 
-    List<Film> getAll();
-    List<Film> getFilms();
-    Collection<Film> getPopularFilms(Integer count);
+    List<Film> findAll();
+    Collection<Film> findPopularFilms(Integer count);
 
     boolean delete(Film film);
     boolean addLike(int filmId, int userId);

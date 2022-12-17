@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -36,13 +35,12 @@ public class FilmService {
 
     public List<Film> getAll() {
         log.info("Список фильмов отправлен");
-        return filmStorage.getAll();
+        return filmStorage.findAll();
     }
 
     public Film create(Film film) {
         validate(film);
         throwIfReleaseDateNotValid(film);
-        InMemoryFilmStorage.throwIfAlreadyExist(film);
         validateReleaseDate(film, "");
         return filmStorage.create(film);
     }
@@ -68,7 +66,7 @@ public class FilmService {
         Film film = getFilmStored(filmId);
         User user = userService.getUserById(userId);
         filmStorage.removeLike(film.getId(), user.getId());
-        log.info("У Фильм с id: '{}' удалён лайк", filmId);
+        log.info("У Фильма id: '{}' удалён лайк", filmId);
     }
 
     public Collection<Film> getPopularFilms(String count) {
@@ -77,12 +75,12 @@ public class FilmService {
             size = 10;
         }
         log.info("Список популярных фильмов отправлен");
-        return filmStorage.getPopularFilms(size);
+        return filmStorage.findPopularFilms(size);
     }
 
     public void validateReleaseDate(Film film, String text) {
         if (film.getReleaseDate().isBefore(START_DATA)) {
-            throw new BadRequestException("HTTP ERROR 400: Дата релиза не может быть раньше: " + START_DATA);
+            throw new ValidationException("Дата релиза не может быть раньше: " + START_DATA);
         }
         log.debug("{} фильм: '{}'", text, film.getName());
     }
@@ -109,7 +107,7 @@ public class FilmService {
             for (ConstraintViolation<Film> filmConstraintViolation : violations) {
                 messageBuilder.append(filmConstraintViolation.getMessage());
             }
-            throw new FilmValidationException("Ошибка валидации Фильма: " + messageBuilder, violations);
+            throw new ValidationException("Ошибка валидации Фильма: " + messageBuilder);
         }
         if (film.getId() == 0) {
             film.setId(getNextId());

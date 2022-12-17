@@ -11,9 +11,9 @@ public interface UserStorage {
     User update(User user);
     User findById(Integer id);
     User deleteById(Integer id);
-    User getUser(final Integer id);
+    User findUser(final Integer id);
 
-    Map<Integer, User> getUsers();
+    Map<Integer, User> findUsers();
     List<User> findAll();
 
     boolean deleteUser(User user);

@@ -12,6 +12,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.sql.*;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -60,12 +61,11 @@ public class UserDbStorage implements UserStorage {
         try {
             user = jdbcTemplate.queryForObject(sqlQuery, (rs, rowNum) -> makeUser(rs), id);
         } catch (EmptyResultDataAccessException e) {
-            throw new NotFoundException("Пользователь с id: '" +
+            throw new NotFoundException("HTTP ERROR 404: Пользователь с id: '" +
                     id + "' не зарегистрирован!");
         }
         return user;
     }
-
     @Override
     public User deleteById(Integer id) {
         final String sqlQuery = "DELETE FROM USERS WHERE USER_ID = ?";
@@ -120,12 +120,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public Map<Integer, User> getUsers() {
-        return null;
-    }
-
-    @Override
-    public User getUser(Integer id) {
+    public User findUser(Integer id) {
         String sqlQuery = "SELECT * FROM USERS WHERE USER_ID = ?";
         User user;
         try {
@@ -135,6 +130,12 @@ public class UserDbStorage implements UserStorage {
                     id + " не зарегистрирован!");
         }
         return user;
+    }
+
+    @Override
+    public Map<Integer, User> findUsers() {
+        Map<Integer, User> users = new HashMap<>();
+        return users;
     }
 
     private User makeUser(ResultSet resultSet) throws SQLException {
