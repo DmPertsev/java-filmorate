@@ -27,7 +27,6 @@ public class GenreService {
     }
 
     public boolean deleteFilmGenres(int filmId) {
-
         return genreStorage.deleteFilmGenres(filmId);
     }
 

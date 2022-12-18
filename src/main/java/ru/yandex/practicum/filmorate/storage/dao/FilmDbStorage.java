@@ -44,9 +44,15 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> findAll() {
-        String sqlQuery = "SELECT * FROM FILMS " +
+        /*String sqlQuery = "SELECT * FROM FILMS " +
                 "INNER JOIN RATING_MPA ON FILMS.RATING_ID = RATING_MPA.RATING_ID ";
+
+         */
+
+        final String sqlQuery = "SELECT * FROM FILMS, RATING_MPA WHERE FILMS.RATING_ID = RATING_MPA.RATING_ID ";
+
         return jdbcTemplate.query(sqlQuery, (resultSet, rowNum) -> makeFilm(resultSet));
+        //return jdbcTemplate.query(sqlQuery, FilmDbStorage::makeFilm);
     }
 
     @Override
@@ -96,16 +102,15 @@ public class FilmDbStorage implements FilmStorage {
                 film.getId());
 
         genreService.deleteFilmGenres(film.getId());
-        if (!film.getGenres().isEmpty()) {
-            genreService.addFilmGenres(film.getId(), film.getGenres());
-        }
-
-        if (film.getLikes() != null) {
+       if (!film.getGenres().isEmpty()) {
+           genreService.addFilmGenres(film.getId(), film.getGenres());
+       }
+       if (film.getLikes() != null) {
             for (Integer userId : film.getLikes()) {
                 addLike(film.getId(), userId);
             }
-        }
-        return findById(film.getId());
+       }
+       return findById(film.getId());
     }
 
     @Override

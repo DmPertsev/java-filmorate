@@ -5,13 +5,13 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.GenreStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -23,6 +23,25 @@ public class GenreDbStorage implements GenreStorage {
         String sqlQuery = "DELETE FROM FILM_GENRE WHERE FILM_ID = ?";
         jdbcTemplate.update(sqlQuery, filmId);
         return true;
+    }
+
+    @Override
+    public void load(List<Film> films) {
+        String toSql = String.join(",", Collections.nCopies(films.size(), "?"));
+        films.forEach(film -> film.getGenres().clear());
+        final Map<Long, Film> filmMap = new HashMap<>();
+        for (Film film1 : films) {
+            if (filmMap.put((long) film1.getId(), film1) != null) {
+                throw new IllegalStateException("Duplicate key");
+            }
+        }
+        final String sql = "SELECT * FROM GENRES, FILM_GENRE " +
+                "WHERE FILM_GENRE.GENRE_ID = GENRES.GENRE_ID AND FILM_ID IN(" + toSql + ") ";
+        jdbcTemplate.query(sql, (rs) -> {
+            final Film film = filmMap.get(rs.getLong("FILM_ID"));
+            film.getGenres().add(makeGenre(rs, 0));
+        }, films.stream().map(Film::getId).toArray());
+
     }
 
     @Override

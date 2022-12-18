@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.GenreStorage;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -22,24 +23,23 @@ public class FilmService {
     private static int counter = 1;
     private final Validator validator;
     private final FilmStorage filmStorage;
+    private final GenreStorage genreStorage;
     private final UserService userService;
     private static final LocalDate START_DATA = LocalDate.of(1895, 12, 28);
 
     @Autowired
     public FilmService(Validator validator, @Qualifier("FilmDbStorage") FilmStorage filmStorage,
-                       @Autowired(required = false) UserService userService) {
+                       GenreStorage genreStorage, @Autowired(required = false) UserService userService) {
         this.validator = validator;
         this.filmStorage = filmStorage;
+        this.genreStorage = genreStorage;
         this.userService = userService;
     }
 
-    // Привет, даже не знаю как подступиться к N1 без переписывания всего что есть...
-    // И в "пачке" не понял как там найти конкретного человека для чата.
-    // Можешь чуть больше подсказать что делать. А то насколько знаю у нас не многие этим заморачивались.
-    // И нужно ли это сейчас ?
     public List<Film> getAll() {
-        log.info("Список фильмов отправлен");
-        return filmStorage.findAll();
+        final List<Film> films = filmStorage.findAll();
+        genreStorage.load(films);
+        return films;
     }
 
     public Film create(Film film) {
