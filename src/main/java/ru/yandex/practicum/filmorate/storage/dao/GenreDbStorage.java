@@ -25,6 +25,7 @@ public class GenreDbStorage implements GenreStorage {
         return true;
     }
 
+    /*
     @Override
     public void load(List<Film> films) {
         String toSql = String.join(",", Collections.nCopies(films.size(), "?"));
@@ -41,8 +42,9 @@ public class GenreDbStorage implements GenreStorage {
             final Film film = filmMap.get(rs.getLong("FILM_ID"));
             film.getGenres().add(makeGenre(rs, 0));
         }, films.stream().map(Film::getId).toArray());
-
     }
+
+     */
 
     @Override
     public boolean addFilmGenres(int filmId, Collection<Genre> genres) {

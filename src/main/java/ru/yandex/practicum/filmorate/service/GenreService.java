@@ -30,6 +30,7 @@ public class GenreService {
         return genreStorage.deleteFilmGenres(filmId);
     }
 
+
     public boolean addFilmGenres(int filmId, Collection<Genre> genres) {
         return genreStorage.addFilmGenres(filmId, genres);
     }

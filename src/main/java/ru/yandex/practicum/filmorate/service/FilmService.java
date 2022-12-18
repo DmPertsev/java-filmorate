@@ -36,12 +36,6 @@ public class FilmService {
         this.userService = userService;
     }
 
-    public List<Film> getAll() {
-        final List<Film> films = filmStorage.findAll();
-        genreStorage.load(films);
-        return films;
-    }
-
     public Film create(Film film) {
         validate(film);
         throwIfReleaseDateNotValid(film);
@@ -57,6 +51,15 @@ public class FilmService {
         }
         validateReleaseDate(film, "");
         return filmStorage.update(film);
+    }
+
+    // ВРоде все сделал, но не смог побороть 2 теста в Постмане.
+    // Пристылаю такой вариант с законменченным вариантом по на N1
+
+    public List<Film> getAll() {
+        final List<Film> films = filmStorage.findAll();
+        //genreStorage.load(films);
+        return films;
     }
 
     public void addLike(String filmId, String userId) {

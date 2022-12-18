@@ -13,5 +13,5 @@ public interface GenreStorage {
 
     boolean addFilmGenres(int filmId, Collection<Genre> genres);
     boolean deleteFilmGenres(int filmId);
-    void load(List<Film> films);
+    //void load(List<Film> films);
 }
