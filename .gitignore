@@ -20,10 +20,10 @@ target/
 *.ipr
 
 ### NetBeans ###
-/nbproject/private/
-/nbbuild/
+\nbproject/private/
+\nbbuild/
 /dist/
-/nbdist/
+\nbdist/
 /.nb-gradle/
 build/
 !**/src/main/**/build/
@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+.DS_Store
+
+*.db
+db/*
