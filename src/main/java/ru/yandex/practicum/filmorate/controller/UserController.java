@@ -15,6 +15,7 @@ import java.util.*;
 @Slf4j
 @RequestMapping("/users")
 public class UserController {
+
     private int id = 1;
     final Map<Integer, User> users = new HashMap<>();
 
@@ -25,6 +26,7 @@ public class UserController {
         user.setId(id++);
         users.put(user.getId(), user);
         log.info("Пользователь добавлен, Логин: {}, email: {}", user.getLogin(), user.getEmail());
+
         return user;
     }
 
@@ -37,6 +39,7 @@ public class UserController {
         throwIfUserAlreadyExist(user);
         users.put(user.getId(), user);
         log.info("Данные пользователя с id: {}, логином: {} успешно обновлена", user.getId(), user.getLogin());
+
         return user;
     }
 
@@ -50,12 +53,19 @@ public class UserController {
             log.warn("Логин: {}", user.getLogin());
             throw new BadRequestException("Логин пользователя не может содержать пробелы");
         }
-        if (user.getName() == null || user.getName().isBlank()) {
+        if (user.getName() == null || user.getName().equals("")) {
             user.setName(user.getLogin());
+            log.warn("Не заполнено Имя пользователя заменено на Логин: '{}'", user.getName());
         }
         if (user.getBirthday().isAfter(LocalDate.now())) {
             log.warn("Дата рождения: {}", user.getBirthday());
             throw new BadRequestException("Дата рождения не может быть в будущем!");
+        }
+
+        String name = user.getName();
+        if (name == null || name.isBlank()) {
+            name = user.getLogin();
+            user.setName(name);
         }
     }
 

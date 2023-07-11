@@ -20,9 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class FilmControllerTests {
 
     private final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-
     private Validator validator = factory.getValidator();
-
     FilmController filmController;
     Film film;
 

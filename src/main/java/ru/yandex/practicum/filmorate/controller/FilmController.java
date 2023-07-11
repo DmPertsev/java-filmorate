@@ -15,6 +15,7 @@ import java.util.*;
 @Slf4j
 @RequestMapping("/films")
 public class FilmController {
+
     private int id = 1;
     private static final LocalDate DATE_BEFORE = LocalDate.of(1895, 12, 28);
     final Map<Integer, Film> films = new HashMap<>();
@@ -26,6 +27,7 @@ public class FilmController {
         film.setId(id++);
         films.put(film.getId(), film);
         log.info("Фильм: {} успешно добавлен в коллекцию", film.getName());
+
         return film;
     }
 
@@ -33,11 +35,12 @@ public class FilmController {
     public Film put(@Valid @RequestBody Film film) {
         throwIfReleaseDateNotValid(film);
         if (!films.containsKey(film.getId())) {
-            throw new NotFoundException("HTTP ERROR 404: Невозможно обновить данные о фильме, так как такого фильма у нас нет");
+            throw new NotFoundException("HTTP ERROR 404: Невозможно обновить данные о фильме: " + film + ", такого фильма в базе нет");
         }
         throwIfAlreadyExist(film);
         films.put(film.getId(), film);
         log.info("Информация о фильме: {} успешно обновлена", film.getName());
+
         return film;
     }
 

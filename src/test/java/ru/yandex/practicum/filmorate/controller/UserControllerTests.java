@@ -18,11 +18,8 @@ import static org.junit.jupiter.api.Assertions.*;
 public class UserControllerTests  {
 
     private final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-
     private Validator validator = factory.getValidator();
-
     UserController userController;
-
     User user;
 
     @BeforeEach
