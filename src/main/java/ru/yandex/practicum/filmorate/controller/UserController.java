@@ -1,86 +1,62 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.BadRequestException;
-import ru.yandex.practicum.filmorate.exceptions.ConflictException;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
-import java.time.LocalDate;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
 
 @RestController
-@Slf4j
+@RequiredArgsConstructor
 @RequestMapping("/users")
 public class UserController {
-
-    private int id = 1;
-    final Map<Integer, User> users = new HashMap<>();
+    private final UserService userService;
 
     @PostMapping
     public User create(@Valid @RequestBody User user) {
-        throwIfUserPrintWrongInfo(user);
-        throwIfUserAlreadyExist(user);
-        user.setId(id++);
-        users.put(user.getId(), user);
-        log.info("Пользователь добавлен, Логин: {}, email: {}", user.getLogin(), user.getEmail());
-
-        return user;
+        return userService.create(user);
     }
 
     @PutMapping
-    public User put(@Valid @RequestBody User user) {
-        throwIfUserPrintWrongInfo(user);
-        if (!users.containsKey(user.getId())) {
-            throw new NotFoundException("HTTP ERROR 404: Невозможно обновить данные, так как пользователя не существует");
-        }
-        throwIfUserAlreadyExist(user);
-        users.put(user.getId(), user);
-        log.info("Данные пользователя с id: {}, логином: {} успешно обновлена", user.getId(), user.getLogin());
-
-        return user;
+    public User update(@Valid @RequestBody User user) {
+        return userService.update(user);
     }
 
     @GetMapping
-    public List<User> findAll() {
-        return new ArrayList<>(users.values());
+    public Collection<User> findAll() {
+        return userService.findAll();
     }
 
-    void throwIfUserPrintWrongInfo(@Valid @RequestBody User user) {
-        if (user.getLogin().contains(" ")) {
-            log.warn("Логин: {}", user.getLogin());
-            throw new BadRequestException("Логин пользователя не может содержать пробелы");
-        }
-        if (user.getName() == null || user.getName().equals("")) {
-            user.setName(user.getLogin());
-            log.warn("Не заполнено Имя пользователя заменено на Логин: '{}'", user.getName());
-        }
-        if (user.getBirthday().isAfter(LocalDate.now())) {
-            log.warn("Дата рождения: {}", user.getBirthday());
-            throw new BadRequestException("Дата рождения не может быть в будущем!");
-        }
-
-        String name = user.getName();
-        if (name == null || name.isBlank()) {
-            name = user.getLogin();
-            user.setName(name);
-        }
+    @GetMapping("/{id}")
+    public User findById(@PathVariable int id) {
+        return userService.findById(id);
     }
 
-    private void throwIfUserAlreadyExist(@RequestBody User userToAdd) {
-        boolean exists = users.values().stream()
-                .anyMatch(user -> isAlreadyExist(userToAdd, user));
-        if (exists) {
-            log.warn("Email пользователя: {}", userToAdd);
-            throw new ConflictException("HTTP ERROR 409: Пользователь с таким Email или логином уже существует");
-        }
+    @DeleteMapping("/{id}")
+    public User deleteById(@PathVariable int id) {
+        return userService.deleteById(id);
     }
 
-    private boolean isAlreadyExist(User userToAdd, User user) {
-        return userToAdd.getLogin().equals(user.getLogin()) ||
-                userToAdd.getEmail().equals(user.getEmail());
+    @PutMapping("/{id}/friends/{friendId}")
+    public List<User> addFriend(@PathVariable int id, @PathVariable int friendId) {
+        return userService.addFriendship(id, friendId);
+    }
 
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public List<User> removeFriend(@PathVariable int id, @PathVariable int friendId) {
+        return userService.removeFriendship(id, friendId);
+    }
+
+    @GetMapping("{id}/friends")
+    public List<User> getFriendsList(@PathVariable int id) {
+        return userService.getFriendsListById(id);
+    }
+
+    @GetMapping("/{firstId}/friends/common/{secondId}")
+    public List<User> getCommonFriends(@PathVariable int firstId, @PathVariable int secondId) {
+        return userService.getCommonFriendsList(firstId, secondId);
     }
 }
