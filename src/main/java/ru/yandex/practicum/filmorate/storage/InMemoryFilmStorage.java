@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.ConflictException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
@@ -61,19 +60,5 @@ public class InMemoryFilmStorage implements FilmStorage {
         }
 
         return false;
-    }
-
-    public static void throwIfAlreadyExist(Film filmToAdd) {
-        boolean exists = films.values().stream()
-                .anyMatch(film -> isAlreadyExist(filmToAdd, film));
-        if (exists) {
-            log.warn("Фильм к добавлению: {}", filmToAdd);
-            throw new ConflictException("HTTP ERROR 409: Такой фильм уже существует в коллекции");
-        }
-    }
-
-    private static boolean isAlreadyExist(Film filmToAdd, Film film) {
-        return filmToAdd.getName().equals(film.getName()) &&
-                filmToAdd.getReleaseDate().equals(film.getReleaseDate());
     }
 }

@@ -6,10 +6,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import ru.yandex.practicum.filmorate.exception.BadRequestException;
+import ru.yandex.practicum.filmorate.exception.ConflictException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -25,9 +25,6 @@ public class FilmService {
     private final FilmStorage filmStorage;
 
     public Film create(Film film) {
-        throwIfReleaseDateNotValid(film);
-        InMemoryFilmStorage.throwIfAlreadyExist(film);
-
         return filmStorage.create(film);
     }
 
@@ -40,13 +37,13 @@ public class FilmService {
         return filmStorage.update(film);
     }
 
-    public List<Film> findAll() {
+    public List<Film> getAll() {
         log.info("Список фильмов отправлен");
 
         return filmStorage.findAll();
     }
 
-    public Film findById(int id) {
+    public Film getById(int id) {
         filmStorage.isNotExist(id);
         log.info("Фильм с id: {} отправлен", id);
 
@@ -89,7 +86,7 @@ public class FilmService {
                 .collect(Collectors.toList());
     }
 
-    void throwIfReleaseDateNotValid(Film film) {
+    public void throwIfReleaseDateNotValid(Film film) {
 
         if (film.getName().isBlank()) {
             log.warn("Дата выпуска фильма: {}", film.getReleaseDate());
@@ -110,5 +107,19 @@ public class FilmService {
             log.warn("Текущее описание фильма: {}", film.getDescription());
             throw new BadRequestException("HTTP ERROR 400: Описание должно быть не более 200 символов");
         }
+    }
+
+    public void throwIfAlreadyExist(Film filmToAdd) {
+        boolean exists = filmStorage.findAll().stream()
+                .anyMatch(film -> isAlreadyExist(filmToAdd, film));
+        if (exists) {
+            log.warn("Фильм к добавлению: {}", filmToAdd);
+            throw new ConflictException("HTTP ERROR 409: Такой фильм уже существует в коллекции");
+        }
+    }
+
+    private boolean isAlreadyExist(Film filmToAdd, Film film) {
+        return filmToAdd.getName().equals(film.getName()) &&
+                filmToAdd.getReleaseDate().equals(film.getReleaseDate());
     }
 }

@@ -17,6 +17,8 @@ public class UserController {
 
     @PostMapping
     public User create(@Valid @RequestBody User user) {
+        userService.throwIfUserPrintWrongInfo(user);
+        userService.throwIfAlreadyExist(user);
         return userService.create(user);
     }
 
@@ -27,12 +29,12 @@ public class UserController {
 
     @GetMapping
     public Collection<User> findAll() {
-        return userService.findAll();
+        return userService.getAll();
     }
 
     @GetMapping("/{id}")
     public User findById(@PathVariable int id) {
-        return userService.findById(id);
+        return userService.getById(id);
     }
 
     @DeleteMapping("/{id}")

@@ -17,6 +17,8 @@ public class FilmController {
 
     @PostMapping
     public Film create(@Valid @RequestBody Film film) {
+        filmService.throwIfReleaseDateNotValid(film);
+        filmService.throwIfAlreadyExist(film);
         return filmService.create(film);
     }
 
@@ -26,13 +28,13 @@ public class FilmController {
     }
 
     @GetMapping
-    public Collection<Film> findAll() {
-        return filmService.findAll();
+    public List<Film> findAll() {
+        return filmService.getAll();
     }
 
     @GetMapping("/{id}")
     public Film getById(@PathVariable int id) {
-        return filmService.findById(id);
+        return filmService.getById(id);
     }
 
     @DeleteMapping("/{id}")
