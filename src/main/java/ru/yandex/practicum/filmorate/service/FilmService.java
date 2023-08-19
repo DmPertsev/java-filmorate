@@ -1,101 +1,108 @@
 package ru.yandex.practicum.filmorate.service;
 
-import com.sun.jdi.InternalException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import ru.yandex.practicum.filmorate.exception.BadRequestException;
-import ru.yandex.practicum.filmorate.exception.ConflictException;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.GenreStorage;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class FilmService {
 
-    private static final LocalDate DATE_BEFORE = LocalDate.of(1895, 12, 28);
-
+    private static int counter = 1;
+    private final Validator validator;
     private final FilmStorage filmStorage;
+    private final GenreStorage genreStorage;
+    private final UserService userService;
+    private static final LocalDate START_DATA = LocalDate.of(1895, 12, 28);
+
+    @Autowired
+    public FilmService(Validator validator, @Qualifier("FilmDbStorage") FilmStorage filmStorage,
+                       GenreStorage genreStorage, @Autowired(required = false) UserService userService) {
+        this.validator = validator;
+        this.filmStorage = filmStorage;
+        this.genreStorage = genreStorage;
+        this.userService = userService;
+    }
 
     public Film create(Film film) {
+        validate(film);
+        throwIfReleaseDateNotValid(film);
+        validateReleaseDate(film, "");
+
         return filmStorage.create(film);
     }
 
     public Film update(Film film) {
         throwIfReleaseDateNotValid(film);
+        validate(film);
+
         if (filmStorage.isNotExist(film.getId())) {
             throw new NotFoundException("HTTP ERROR 404: Невозможно обновить данные о фильме, так как такого фильма у нас нет");
         }
+        validateReleaseDate(film, "");
 
         return filmStorage.update(film);
     }
 
+    // ВРоде все сделал, но не смог побороть 2 теста в Постмане.
+    // Пристылаю такой вариант с законменченным вариантом по на N1
+
     public List<Film> getAll() {
-        log.info("Список фильмов отправлен");
+        final List<Film> films = filmStorage.findAll();
 
-        return filmStorage.findAll();
+        return films;
     }
 
-    public Film getById(int id) {
-        filmStorage.isNotExist(id);
-        log.info("Фильм с id: {} отправлен", id);
-
-        return filmStorage.findById(id);
+    public void addLike(String filmId, String userId) {
+        Film film = getFilmStored(filmId);
+        User user = userService.getUserById(userId);
+        filmStorage.addLike(film.getId(), user.getId());
+        log.info("Фильм с id: '{}' получил лайк", filmId);
     }
 
-    public Film deleteById(int id) {
-        filmStorage.isNotExist(id);
-        log.info("Фильм с id: {} удален", id);
-
-        return filmStorage.deleteById(id);
+    public void removeLike(String filmId, String userId) {
+        Film film = getFilmStored(filmId);
+        User user = userService.getUserById(userId);
+        filmStorage.removeLike(film.getId(), user.getId());
+        log.info("У Фильма id: '{}' удалён лайк", filmId);
     }
 
-    public Film addLike(int filmId, int userId) {
-        filmStorage.isNotExist(filmId);
-        filmStorage.findById(filmId).getUsersLikes().add(userId);
-        log.info("Пользователь с id: {} поставил лайк фильму с id {}", userId, filmId);
-
-        return filmStorage.findById(filmId);
-    }
-
-    public Film removeLike(int filmId, int userId) {
-        filmStorage.isNotExist(filmId);
-
-        if (!filmStorage.findById(filmId).getUsersLikes().contains(userId)) {
-            throw new NotFoundException("HTTP ERROR 404: Нет лайка от пользователя");
+    public Collection<Film> getPopularFilms(String count) {
+        Integer size = parseId(count);
+        if (size == Integer.MIN_VALUE) {
+            size = 10;
         }
-        filmStorage.findById(filmId).getUsersLikes().contains(userId);
-        log.info("Пользователь с id: {} удалил лайк фильму с id {}", userId, filmId);
-
-        return filmStorage.findById(filmId);
-    }
-
-    public List<Film> getPopularFilms(int count) {
         log.info("Список популярных фильмов отправлен");
 
-        return filmStorage.findAll().stream()
-                .sorted((o1, o2) -> Integer.compare(o2.getUsersLikes().size(), o1.getUsersLikes().size()))
-                .limit(count)
-                .collect(Collectors.toList());
+        return filmStorage.findPopularFilms(size);
     }
 
-    public void throwIfReleaseDateNotValid(Film film) {
+    public void validateReleaseDate(Film film, String text) {
+        if (film.getReleaseDate().isBefore(START_DATA)) {
+            throw new ValidationException("Дата релиза не может быть раньше: " + START_DATA);
+        }
+        log.debug("{} фильм: '{}'", text, film.getName());
+    }
+
+    void throwIfReleaseDateNotValid(Film film) {
 
         if (film.getName().isBlank()) {
             log.warn("Дата выпуска фильма: {}", film.getReleaseDate());
             throw new BadRequestException("HTTP ERROR 400: Название фильма не может быть пустым");
-        }
-
-        if (film.getReleaseDate().isBefore(DATE_BEFORE)) {
-            log.warn("Дата выпуска фильма: {}", film.getReleaseDate());
-            throw new BadRequestException("HTTP ERROR 400: До 28 декабря 1895 года кино не производили");
         }
 
         if (film.getDuration() < 0) {
@@ -105,21 +112,52 @@ public class FilmService {
 
         if (film.getDescription().length() > 200) {
             log.warn("Текущее описание фильма: {}", film.getDescription());
-            throw new BadRequestException("HTTP ERROR 400: Описание должно быть не более 200 символов");
+            throw new  BadRequestException("HTTP ERROR 400: Описание должно быть не более 200 символов");
         }
     }
 
-    public void throwIfAlreadyExist(Film filmToAdd) {
-        boolean exists = filmStorage.findAll().stream()
-                .anyMatch(film -> isAlreadyExist(filmToAdd, film));
-        if (exists) {
-            log.warn("Фильм к добавлению: {}", filmToAdd);
-            throw new ConflictException("HTTP ERROR 409: Такой фильм уже существует в коллекции");
+    private void validate(Film film) {
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        if (!violations.isEmpty()) {
+            StringBuilder messageBuilder = new StringBuilder();
+            for (ConstraintViolation<Film> filmConstraintViolation : violations) {
+                messageBuilder.append(filmConstraintViolation.getMessage());
+            }
+            throw new ValidationException("Ошибка валидации Фильма: " + messageBuilder);
+        }
+        if (film.getId() == 0) {
+            film.setId(getNextId());
         }
     }
 
-    private boolean isAlreadyExist(Film filmToAdd, Film film) {
-        return filmToAdd.getName().equals(film.getName()) &&
-                filmToAdd.getReleaseDate().equals(film.getReleaseDate());
+    private static int getNextId() {
+        return counter++;
+    }
+
+    public Film findById(String id) {
+        log.info("Фильм id: '{}' отправлен", id);
+
+        return getFilmStored(id);
+    }
+
+    private Integer parseId(final String supposedInt) {
+        try {
+            return Integer.valueOf(supposedInt);
+        } catch (NumberFormatException exception) {
+            return Integer.MIN_VALUE;
+        }
+    }
+
+    private Film getFilmStored(final String supposedId) {
+        final int filmId = parseId(supposedId);
+        if (filmId == Integer.MIN_VALUE) {
+            throw new NotFoundException("HTTP ERROR 404: Не удалось найти id фильма: '{}'", supposedId);
+        }
+        Film film = filmStorage.findById(filmId);
+        if (film == null) {
+            throw new NotFoundException(String.format("HTTP ERROR 404: Фильм с id: '%d' не найден", filmId));
+        }
+
+        return film;
     }
 }
