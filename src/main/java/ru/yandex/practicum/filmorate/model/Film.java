@@ -1,28 +1,33 @@
 package ru.yandex.practicum.filmorate.model;
 
-import lombok.Data;
+import lombok.*;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Film {
+
+    private Set<Integer> usersLikes = new HashSet<>();
 
     private int id;
 
     @NotBlank
-    private final String name;
+    private String name;
 
     @NotBlank
-    @Size(max = 200, message = "максимальное описание 200 знаков")
-    private final String description;
+    private String description;
 
     @NotNull
-    private final LocalDate releaseDate;
+    private LocalDate releaseDate;
 
     @Min(value = 1)
-    private final int duration;
+    private int duration;
 }

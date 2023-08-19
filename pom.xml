@@ -14,7 +14,7 @@
 	<artifactId>filmorate</artifactId>
 	<version>0.1.1-SNAPSHOT</version>
 	<name>filmorate</name>
-	<description>Мини-версия приложения для просмотра фильмов.</description>
+	<description>Мини-версия приложения для просмотра фильмов. Выставление лайков и оценок</description>
 
 	<properties>
 		<java.version>11</java.version>
