@@ -41,7 +41,6 @@ public class FilmService {
     public Film create(Film film) {
         validate(film);
         throwIfReleaseDateNotValid(film);
-        validateReleaseDate(film, "");
 
         return filmStorage.create(film);
     }
@@ -53,13 +52,9 @@ public class FilmService {
         if (filmStorage.isNotExist(film.getId())) {
             throw new NotFoundException("HTTP ERROR 404: Невозможно обновить данные о фильме, так как такого фильма у нас нет");
         }
-        validateReleaseDate(film, "");
 
         return filmStorage.update(film);
     }
-
-    // ВРоде все сделал, но не смог побороть 2 теста в Постмане.
-    // Пристылаю такой вариант с законменченным вариантом по на N1
 
     public List<Film> getAll() {
         final List<Film> films = filmStorage.findAll();
@@ -91,13 +86,6 @@ public class FilmService {
         return filmStorage.findPopularFilms(size);
     }
 
-    public void validateReleaseDate(Film film, String text) {
-        if (film.getReleaseDate().isBefore(START_DATA)) {
-            throw new ValidationException("Дата релиза не может быть раньше: " + START_DATA);
-        }
-        log.debug("{} фильм: '{}'", text, film.getName());
-    }
-
     void throwIfReleaseDateNotValid(Film film) {
 
         if (film.getName().isBlank()) {
@@ -123,7 +111,7 @@ public class FilmService {
             for (ConstraintViolation<Film> filmConstraintViolation : violations) {
                 messageBuilder.append(filmConstraintViolation.getMessage());
             }
-            throw new ValidationException("Ошибка валидации Фильма: " + messageBuilder);
+            throw new BadRequestException("Ошибка валидации Фильма: " + messageBuilder);
         }
         if (film.getId() == 0) {
             film.setId(getNextId());

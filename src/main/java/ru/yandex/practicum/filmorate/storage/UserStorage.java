@@ -9,6 +9,7 @@ public interface UserStorage {
 
     User create(User user);
     User update(User user);
+
     User findById(Integer id);
     User deleteById(Integer id);
     User findUser(final Integer id);

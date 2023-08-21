@@ -3,10 +3,12 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.BadRequestException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 
@@ -17,10 +19,12 @@ import java.util.List;
 public class FilmController {
 
     private final FilmService filmService;
+    private static final LocalDate START_DATA = LocalDate.of(1895, 12, 28);
 
     @PostMapping
     public Film create(@Valid @RequestBody Film film) {
         log.info("POST запрос по адресу /films создание нового фильма: Данные запроса: '{}'", film);
+        validateReleaseDate(film, "Создание");
 
         return filmService.create(film);
     }
@@ -28,6 +32,7 @@ public class FilmController {
     @PutMapping
     public Film update(@Valid @RequestBody Film film) {
         log.info("Обновление фильма id '{}' '{}'", film.getId(), film);
+        validateReleaseDate(film, "Обновление");
 
         return filmService.update(film);
     }
@@ -64,5 +69,12 @@ public class FilmController {
         log.info("GET запрос по адресу '/films/popular?count={}'", count);
 
         return filmService.getPopularFilms(count);
+    }
+
+    public void validateReleaseDate(Film film, String text) {
+        if (film.getReleaseDate().isBefore(START_DATA)) {
+            throw new BadRequestException("Дата релиза не может быть раньше: " + START_DATA);
+        }
+        log.debug("{} фильм: '{}'", text, film.getName());
     }
 }

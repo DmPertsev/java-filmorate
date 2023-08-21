@@ -12,7 +12,7 @@ public interface FilmStorage {
     Film findById(int id);
 
     List<Film> findAll();
-    Collection<Film> findPopularFilms(Integer count);
+    List<Film> findPopularFilms(Integer count);
 
     boolean delete(Film film);
     boolean addLike(int filmId, int userId);

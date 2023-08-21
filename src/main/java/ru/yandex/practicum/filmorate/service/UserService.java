@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.BadRequestException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -136,7 +135,7 @@ public class UserService {
 
         if (user.getBirthday().isAfter(LocalDate.now())) {
             log.warn("Указанная Дата рождения: '{}'", user.getBirthday());
-            throw new ValidationException("Дата рождения не может быть в будущем");
+            throw new BadRequestException("Дата рождения не может быть в будущем");
         }
 
         if (user.getEmail().isBlank() || user.getEmail() == null || user.getEmail().equals(" ")) {
@@ -160,7 +159,7 @@ public class UserService {
             for (ConstraintViolation<User> userConstraintViolation : violations) {
                 messageBuilder.append(userConstraintViolation.getMessage());
             }
-            throw new ValidationException("Ошибка валидации Пользователя: " + messageBuilder);
+            throw new BadRequestException("Ошибка валидации Пользователя: " + messageBuilder);
         }
         if (user.getId() == 0) {
             user.setId(counter++);
