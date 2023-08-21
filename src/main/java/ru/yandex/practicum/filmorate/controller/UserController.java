@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
 import java.util.Collection;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -17,14 +18,14 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public User create(@RequestBody User user) {
+    public Optional<User> create(@RequestBody User user) {
         log.info("Новый пользователь id: {}", user.getId());
 
         return userService.create(user);
     }
 
     @PutMapping
-    public User update(@Valid @RequestBody User user) {
+    public Optional<User> update(@Valid @RequestBody User user) {
         userService.setUserNameByLogin(user, "Обновлен");
         log.info("Пользователь id: {} обновлен", user.getId());
 
@@ -47,7 +48,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public User deleteById(@PathVariable Integer id) {
+    public Optional<User> deleteById(@PathVariable Integer id) {
         return userService.deleteById(id);
     }
 

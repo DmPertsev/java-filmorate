@@ -14,10 +14,8 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 
 
 import java.sql.*;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.sql.Date;
+import java.util.*;
 
 @Component("UserDbStorage")
 @RequiredArgsConstructor
@@ -25,7 +23,7 @@ public class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
 
     @Override
-    public User create(User user) {
+    public Optional<User> create(User user) {
         final String sqlQuery = "INSERT INTO USERS (EMAIL, LOGIN, USER_NAME, BIRTHDAY) " +
                 "VALUES ( ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -50,7 +48,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public User update(User user) {
+    public Optional<User> update(User user) {
         final String sqlQuery = "UPDATE USERS SET EMAIL = ?, LOGIN = ?, USER_NAME = ?, BIRTHDAY = ? " +
                 "WHERE USER_ID = ?";
         jdbcTemplate.update(sqlQuery, user.getEmail(), user.getLogin(),
@@ -60,7 +58,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public User findById(Integer id) {
+    public Optional<User> findById(Integer id) {
         final String sqlQuery = "SELECT * FROM USERS WHERE USER_ID = ?";
         User user;
         try {
@@ -70,13 +68,13 @@ public class UserDbStorage implements UserStorage {
                     id + "' не зарегистрирован!");
         }
 
-        return user;
+        return Optional.ofNullable(user);
     }
 
     @Override
-    public User deleteById(Integer id) {
+    public Optional<User> deleteById(Integer id) {
         final String sqlQuery = "DELETE FROM USERS WHERE USER_ID = ?";
-        User user = findById(id);
+        Optional<User> user = findById(id);
         jdbcTemplate.update(sqlQuery, id);
 
         return user;

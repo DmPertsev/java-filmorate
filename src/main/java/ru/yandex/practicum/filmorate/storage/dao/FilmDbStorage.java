@@ -20,6 +20,7 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import java.sql.*;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Component("FilmDbStorage")
 @RequiredArgsConstructor
@@ -30,7 +31,7 @@ public class FilmDbStorage implements FilmStorage {
     private final Logger log = LoggerFactory.getLogger(FilmDbStorage.class);
 
     @Override
-    public Film findById(int filmId) {
+    public Optional<Film> findById(int filmId) {
         String sqlQuery = "SELECT * FROM FILMS " +
                 "INNER JOIN RATING_MPA ON FILMS.RATING_ID = RATING_MPA.RATING_ID " +
                 "WHERE FILM_ID = ?";
@@ -42,7 +43,7 @@ public class FilmDbStorage implements FilmStorage {
         }
         log.info("Найден фильм: {} {}", film.getId(), film.getName());
 
-        return film;
+        return Optional.of(film);
     }
 
     @Override
@@ -53,7 +54,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public Film create(Film film) {
+    public Optional<Film> create(Film film) {
         String sqlQuery = "INSERT INTO FILMS " +
                 "(FILM_NAME, DESCRIPTION, RELEASE_DATE, DURATION, RATE, RATING_ID) " +
                 "VALUES (?, ?, ?, ?, ?, ?)";
@@ -85,7 +86,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public Film update(Film film) {
+    public Optional<Film> update(Film film) {
         String sqlQueryDel = "DELETE FROM FILM_GENRE WHERE FILM_ID = ?";
         jdbcTemplate.update(sqlQueryDel, film.getId());
 

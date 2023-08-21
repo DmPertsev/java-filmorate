@@ -16,6 +16,7 @@ import javax.validation.Validator;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -27,7 +28,6 @@ public class FilmService {
     private final FilmStorage filmStorage;
     private final GenreStorage genreStorage;
     private final UserService userService;
-    private static final LocalDate START_DATA = LocalDate.of(1895, 12, 28);
 
     @Autowired
     public FilmService(Validator validator, @Qualifier("FilmDbStorage") FilmStorage filmStorage,
@@ -38,14 +38,14 @@ public class FilmService {
         this.userService = userService;
     }
 
-    public Film create(Film film) {
+    public Optional<Film> create(Film film) {
         validate(film);
         throwIfReleaseDateNotValid(film);
 
         return filmStorage.create(film);
     }
 
-    public Film update(Film film) {
+    public Optional<Film> update(Film film) {
         throwIfReleaseDateNotValid(film);
         validate(film);
 
@@ -63,16 +63,16 @@ public class FilmService {
     }
 
     public void addLike(String filmId, String userId) {
-        Film film = getFilmStored(filmId);
+        Optional<Film> film = getFilmStored(filmId);
         User user = userService.getUserById(userId);
-        filmStorage.addLike(film.getId(), user.getId());
+        filmStorage.removeLike(film.get().getId(), user.getId());
         log.info("Фильм с id: '{}' получил лайк", filmId);
     }
 
     public void removeLike(String filmId, String userId) {
-        Film film = getFilmStored(filmId);
+        Optional<Film> film = getFilmStored(filmId);
         User user = userService.getUserById(userId);
-        filmStorage.removeLike(film.getId(), user.getId());
+        filmStorage.removeLike(film.get().getId(), user.getId());
         log.info("У Фильма id: '{}' удалён лайк", filmId);
     }
 
@@ -122,7 +122,7 @@ public class FilmService {
         return counter++;
     }
 
-    public Film findById(String id) {
+    public Optional<Film> findById(String id) {
         log.info("Фильм id: '{}' отправлен", id);
 
         return getFilmStored(id);
@@ -136,12 +136,12 @@ public class FilmService {
         }
     }
 
-    private Film getFilmStored(final String supposedId) {
+    private Optional<Film> getFilmStored(final String supposedId) {
         final int filmId = parseId(supposedId);
         if (filmId == Integer.MIN_VALUE) {
             throw new NotFoundException("HTTP ERROR 404: Не удалось найти id фильма: '{}'", supposedId);
         }
-        Film film = filmStorage.findById(filmId);
+        Optional<Film> film = filmStorage.findById(filmId);
         if (film == null) {
             throw new NotFoundException(String.format("HTTP ERROR 404: Фильм с id: '%d' не найден", filmId));
         }

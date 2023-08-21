@@ -13,6 +13,7 @@ import javax.validation.Validator;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -35,7 +36,7 @@ public class UserService {
         return userStorage.findAll();
     }
 
-    public User create(User user) {
+    public Optional<User> create(User user) {
         throwIfUserPrintWrongInfo(user);
         validate(user);
         log.info("Создан пользователь");
@@ -43,7 +44,7 @@ public class UserService {
         return userStorage.create(user);
     }
 
-    public User update(User user) {
+    public Optional<User> update(User user) {
         throwIfUserPrintWrongInfo(user);
         if (userStorage.isNotExist(user.getId())) {
             throw new NotFoundException("HTTP ERROR 404: Невозможно обновить данные о пользователе");
@@ -53,7 +54,7 @@ public class UserService {
         return userStorage.update(user);
     }
 
-    public User findById(Integer id) {
+    public Optional<User> findById(Integer id) {
         if (!userStorage.findUsers().containsKey(id)) {
             throw new NotFoundException("HTTP ERROR 404: Пользователь не найден");
         }
@@ -61,7 +62,7 @@ public class UserService {
         return userStorage.findById(id);
     }
 
-    public User deleteById(int id) {
+    public Optional<User> deleteById(int id) {
         if (!userStorage.findUsers().containsKey(id)) {
             throw new NotFoundException("HTTP ERROR 404: Пользователь не найден. Невозможно удалить неизветсного пользователя");
         }

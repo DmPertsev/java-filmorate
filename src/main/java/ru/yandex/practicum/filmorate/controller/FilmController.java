@@ -11,6 +11,7 @@ import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/films")
@@ -22,7 +23,7 @@ public class FilmController {
     private static final LocalDate START_DATA = LocalDate.of(1895, 12, 28);
 
     @PostMapping
-    public Film create(@Valid @RequestBody Film film) {
+    public Optional<Film> create(@Valid @RequestBody Film film) {
         log.info("POST запрос по адресу /films создание нового фильма: Данные запроса: '{}'", film);
         validateReleaseDate(film, "Создание");
 
@@ -30,7 +31,7 @@ public class FilmController {
     }
 
     @PutMapping
-    public Film update(@Valid @RequestBody Film film) {
+    public Optional<Film> update(@Valid @RequestBody Film film) {
         log.info("Обновление фильма id '{}' '{}'", film.getId(), film);
         validateReleaseDate(film, "Обновление");
 
@@ -46,7 +47,7 @@ public class FilmController {
     }
 
     @GetMapping("/{id}")
-    public Film findById(@PathVariable String id) {
+    public Optional<Film> findById(@PathVariable String id) {
         log.info("GET запрос по адресу '/films/{}'", id);
 
         return filmService.findById(id);
