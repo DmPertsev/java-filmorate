@@ -11,45 +11,43 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.GenreStorage;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.Validator;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 @Service
 @Slf4j
 public class FilmService {
 
-    private final Validator validator;
     private final FilmStorage filmStorage;
-    private final GenreStorage genreStorage;
+    private final GenreService genreService;
     private final UserService userService;
 
     @Autowired
-    public FilmService(Validator validator, @Qualifier("FilmDbStorage") FilmStorage filmStorage,
-                       GenreStorage genreStorage, @Autowired(required = false) UserService userService) {
-        this.validator = validator;
+    public FilmService(@Qualifier("FilmDbStorage") FilmStorage filmStorage,
+                       GenreService genreService, @Autowired(required = false) UserService userService) {
         this.filmStorage = filmStorage;
-        this.genreStorage = genreStorage;
+        this.genreService = genreService;
         this.userService = userService;
     }
 
     public Film create(Film film) {
-        validate(film);
+        Film createdFilm = filmStorage.create(film);
+        if (createdFilm.getGenres() != null && !createdFilm.getGenres().isEmpty()) {
+            genreService.addFilmGenres(createdFilm.getId(), createdFilm.getGenres());
+        }
 
-        return filmStorage.create(film);
+        return createdFilm;
     }
 
     public Film update(Film film) {
-        validate(film);
-
-        if (filmStorage.isNotExist(film.getId())) {
-            throw new NotFoundException("HTTP ERROR 404: Невозможно обновить данные о фильме, так как такого фильма у нас нет");
+        Film updatedFilm = filmStorage.update(film);
+        genreService.deleteFilmGenres(updatedFilm.getId());
+        if (updatedFilm.getGenres() != null && !updatedFilm.getGenres().isEmpty()) {
+            genreService.addFilmGenres(updatedFilm.getId(), updatedFilm.getGenres());
         }
 
-        return filmStorage.update(film);
+        return updatedFilm;
     }
 
     public List<Film> getAll() {
@@ -78,23 +76,11 @@ public class FilmService {
         return filmStorage.findPopularFilms(count);
     }
 
-    private void validate(Film film) {
-        Set<ConstraintViolation<Film>> violations = validator.validate(film);
-        if (!violations.isEmpty()) {
-            StringBuilder messageBuilder = new StringBuilder();
-            for (ConstraintViolation<Film> filmConstraintViolation : violations) {
-                messageBuilder.append(filmConstraintViolation.getMessage());
-            }
-            throw new BadRequestException("Ошибка валидации Фильма: " + messageBuilder);
-        }
-    }
-
     public Film findById(Integer id) {
         return filmStorage.findById(id)
                 .orElseThrow(() ->
                         new NotFoundException(String.format("HTTP ERROR 404: Фильм с id: '%d' не найден", id)));
     }
-
 
     private Integer parseId(final String supposedInt) {
         try {
@@ -109,7 +95,6 @@ public class FilmService {
         if (film.isEmpty()) {
             throw new NotFoundException(String.format("HTTP ERROR 404: Фильм с id: '%d' не найден", filmId));
         }
-
         return film;
     }
 }

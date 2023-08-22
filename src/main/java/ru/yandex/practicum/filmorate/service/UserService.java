@@ -22,7 +22,6 @@ public class UserService {
     private final Validator validator;
     private final UserStorage userStorage;
 
-
     @Autowired
     public UserService(Validator validator, UserStorage userStorage) {
         this.validator = validator;

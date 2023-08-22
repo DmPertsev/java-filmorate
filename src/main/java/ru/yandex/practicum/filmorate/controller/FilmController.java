@@ -1,32 +1,42 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.BadRequestException;
 import ru.yandex.practicum.filmorate.exception.InternalException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
+import javax.validation.ConstraintViolation;
 import javax.validation.Valid;
+import javax.validation.Validator;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/films")
 @Slf4j
-@RequiredArgsConstructor
 public class FilmController {
 
     private final FilmService filmService;
+    private final Validator validator;
+
     private static final LocalDate START_DATA = LocalDate.of(1895, 12, 28);
+
+    @Autowired
+    public FilmController(FilmService filmService, Validator validator) {
+        this.filmService = filmService;
+        this.validator = validator;
+    }
 
     @PostMapping
     public Film create(@Valid @RequestBody Film film) {
         log.info("POST запрос по адресу /films создание нового фильма: Данные запроса: '{}'", film);
         throwIfReleaseDateNotValid(film);
+        validate(film);
 
         return filmService.create(film);
     }
@@ -36,6 +46,7 @@ public class FilmController {
         log.info("Обновление фильма id '{}' '{}'", film.getId(), film);
         validateReleaseDate(film, "Обновление");
         throwIfReleaseDateNotValid(film);
+        validate(film);
 
         return filmService.update(film);
     }
@@ -96,6 +107,17 @@ public class FilmController {
         if (film.getDescription().length() > 200) {
             log.warn("Текущее описание фильма: {}", film.getDescription());
             throw new  BadRequestException("HTTP ERROR 400: Описание должно быть не более 200 символов");
+        }
+    }
+
+    private void validate(Film film) {
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        if (!violations.isEmpty()) {
+            StringBuilder messageBuilder = new StringBuilder();
+            for (ConstraintViolation<Film> filmConstraintViolation : violations) {
+                messageBuilder.append(filmConstraintViolation.getMessage());
+            }
+            throw new BadRequestException("Ошибка валидации Фильма: " + messageBuilder);
         }
     }
 }
