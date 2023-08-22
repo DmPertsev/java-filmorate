@@ -10,7 +10,6 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
-import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
@@ -20,7 +19,7 @@ import java.util.Set;
 @Slf4j
 public class UserService {
 
-    private int counter = 1;
+    //private int counter = 1;
     private final Validator validator;
     private final UserStorage userStorage;
 
@@ -37,7 +36,6 @@ public class UserService {
     }
 
     public Optional<User> create(User user) {
-        throwIfUserPrintWrongInfo(user);
         validate(user);
         log.info("Создан пользователь");
 
@@ -45,7 +43,6 @@ public class UserService {
     }
 
     public Optional<User> update(User user) {
-        throwIfUserPrintWrongInfo(user);
         if (userStorage.isNotExist(user.getId())) {
             throw new NotFoundException("HTTP ERROR 404: Невозможно обновить данные о пользователе");
         }
@@ -124,27 +121,6 @@ public class UserService {
         log.debug("{} пользователь: '{}', email: '{}'", text, user.getName(), user.getEmail());
     }
 
-    void throwIfUserPrintWrongInfo(User user) {
-        if (user.getLogin().contains(" ") || user.getLogin().isBlank()) {
-            log.warn("Введенный Логин пользователя: '{}'", user.getLogin());
-            throw new BadRequestException("HTTP ERROR 400: Логин не может быть пустым");
-        }
-        if (user.getName() == null || user.getName().equals("")) {
-            user.setName(user.getLogin());
-            log.warn("Не заполнено Имя пользователя заменено на Логин: '{}'", user.getName());
-        }
-
-        if (user.getBirthday().isAfter(LocalDate.now())) {
-            log.warn("Указанная Дата рождения: '{}'", user.getBirthday());
-            throw new BadRequestException("Дата рождения не может быть в будущем");
-        }
-
-        if (user.getEmail().isBlank() || user.getEmail() == null || user.getEmail().equals(" ")) {
-            log.warn("Введенный Email пользователя: '{}'", user.getEmail());
-            throw new BadRequestException("HTTP ERROR 400:Email не может быть пустым");
-        }
-    }
-
     private void validate(final User user) {
         if (user.getName() == null) {
             user.setName(user.getLogin());
@@ -162,9 +138,11 @@ public class UserService {
             }
             throw new BadRequestException("Ошибка валидации Пользователя: " + messageBuilder);
         }
-        if (user.getId() == 0) {
+        /*if (user.getId() == 0) {
             user.setId(counter++);
         }
+
+         */
     }
 
     public Collection<User> getCommonFriendsList(final String supposedUserId, final String supposedOtherId) {

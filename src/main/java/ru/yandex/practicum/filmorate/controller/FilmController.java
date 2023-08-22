@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.BadRequestException;
+import ru.yandex.practicum.filmorate.exception.InternalException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
@@ -25,7 +26,7 @@ public class FilmController {
     @PostMapping
     public Optional<Film> create(@Valid @RequestBody Film film) {
         log.info("POST запрос по адресу /films создание нового фильма: Данные запроса: '{}'", film);
-        validateReleaseDate(film, "Создание");
+        throwIfReleaseDateNotValid(film);
 
         return filmService.create(film);
     }
@@ -34,6 +35,7 @@ public class FilmController {
     public Optional<Film> update(@Valid @RequestBody Film film) {
         log.info("Обновление фильма id '{}' '{}'", film.getId(), film);
         validateReleaseDate(film, "Обновление");
+        throwIfReleaseDateNotValid(film);
 
         return filmService.update(film);
     }
@@ -77,5 +79,22 @@ public class FilmController {
             throw new BadRequestException("Дата релиза не может быть раньше: " + START_DATA);
         }
         log.debug("{} фильм: '{}'", text, film.getName());
+    }
+
+    void throwIfReleaseDateNotValid(Film film) {
+        if (film.getName().isBlank()) {
+            log.warn("Дата выпуска фильма: {}", film.getReleaseDate());
+            throw new BadRequestException("HTTP ERROR 400: Название фильма не может быть пустым");
+        }
+
+        if (film.getDuration() < 0) {
+            log.warn("Продолжительность фильма: {}", film.getDuration());
+            throw new InternalException("HTTP ERROR 500: Продолжительность фильма не может быть меньше нуля");
+        }
+
+        if (film.getDescription().length() > 200) {
+            log.warn("Текущее описание фильма: {}", film.getDescription());
+            throw new  BadRequestException("HTTP ERROR 400: Описание должно быть не более 200 символов");
+        }
     }
 }
