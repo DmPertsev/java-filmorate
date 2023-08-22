@@ -25,27 +25,6 @@ public class GenreDbStorage implements GenreStorage {
         return true;
     }
 
-    /*
-    @Override
-    public void load(List<Film> films) {
-        String toSql = String.join(",", Collections.nCopies(films.size(), "?"));
-        films.forEach(film -> film.getGenres().clear());
-        final Map<Long, Film> filmMap = new HashMap<>();
-        for (Film film1 : films) {
-            if (filmMap.put((long) film1.getId(), film1) != null) {
-                throw new IllegalStateException("Duplicate key");
-            }
-        }
-        final String sql = "SELECT * FROM GENRES, FILM_GENRE " +
-                "WHERE FILM_GENRE.GENRE_ID = GENRES.GENRE_ID AND FILM_ID IN(" + toSql + ") ";
-        jdbcTemplate.query(sql, (rs) -> {
-            final Film film = filmMap.get(rs.getLong("FILM_ID"));
-            film.getGenres().add(makeGenre(rs, 0));
-        }, films.stream().map(Film::getId).toArray());
-    }
-
-     */
-
     @Override
     public boolean addFilmGenres(int filmId, Collection<Genre> genres) {
         for (Genre genre : genres) {

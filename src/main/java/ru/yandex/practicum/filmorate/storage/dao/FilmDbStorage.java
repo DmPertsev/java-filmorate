@@ -163,6 +163,8 @@ public class FilmDbStorage implements FilmStorage {
         return false;
     }
 
+    // c N+1. Не получилось сделать вариант, чтоб проходил тесты постамана...
+
     private Film makeFilm(ResultSet resultSet) throws SQLException {
         int filmId = resultSet.getInt("FILM_ID");
         Film film = new Film(
