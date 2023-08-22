@@ -37,14 +37,14 @@ public class FilmService {
         this.userService = userService;
     }
 
-    public Optional<Film> create(Film film) {
+    public Film create(Film film) {
         validate(film);
         throwIfReleaseDateNotValid(film);
 
         return filmStorage.create(film);
     }
 
-    public Optional<Film> update(Film film) {
+    public Film update(Film film) {
         throwIfReleaseDateNotValid(film);
         validate(film);
 
@@ -121,11 +121,15 @@ public class FilmService {
         return counter++;
     }
 
-    public Optional<Film> findById(String id) {
-        log.info("Фильм id: '{}' отправлен", id);
-
-        return getFilmStored(id);
+    public Film findById(String id) {
+        final int filmId = parseId(id);
+        if (filmId == Integer.MIN_VALUE) {
+            throw new NotFoundException("HTTP ERROR 404: Не удалось найти id фильма: " + id);
+        }
+        return filmStorage.findById(filmId)
+                .orElseThrow(() -> new NotFoundException(String.format("HTTP ERROR 404: Фильм с id: '%d' не найден", filmId)));
     }
+
 
     private Integer parseId(final String supposedInt) {
         try {

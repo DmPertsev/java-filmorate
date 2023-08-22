@@ -54,7 +54,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public Optional<Film> create(Film film) {
+    public Film create(Film film) {
         String sqlQuery = "INSERT INTO FILMS " +
                 "(FILM_NAME, DESCRIPTION, RELEASE_DATE, DURATION, RATE, RATING_ID) " +
                 "VALUES (?, ?, ?, ?, ?, ?)";
@@ -82,11 +82,12 @@ public class FilmDbStorage implements FilmStorage {
             }
         }
 
-        return findById(id);
+        return findById(id).orElseThrow(() ->
+                new NotFoundException(String.format("Ошибка при создании фильма с id=%d", id)));
     }
 
     @Override
-    public Optional<Film> update(Film film) {
+    public Film update(Film film) {
         String sqlQueryDel = "DELETE FROM FILM_GENRE WHERE FILM_ID = ?";
         jdbcTemplate.update(sqlQueryDel, film.getId());
 
@@ -111,7 +112,8 @@ public class FilmDbStorage implements FilmStorage {
             }
         }
 
-        return findById(film.getId());
+        return findById(film.getId()).orElseThrow(() ->
+                new NotFoundException(String.format("Ошибка при обновлении фильма с id=%d", film.getId())));
     }
 
     @Override

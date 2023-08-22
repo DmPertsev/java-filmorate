@@ -19,7 +19,6 @@ import java.util.Set;
 @Slf4j
 public class UserService {
 
-    //private int counter = 1;
     private final Validator validator;
     private final UserStorage userStorage;
 
@@ -35,14 +34,14 @@ public class UserService {
         return userStorage.findAll();
     }
 
-    public Optional<User> create(User user) {
+    public User create(User user) {
         validate(user);
         log.info("Создан пользователь");
 
         return userStorage.create(user);
     }
 
-    public Optional<User> update(User user) {
+    public User update(User user) {
         if (userStorage.isNotExist(user.getId())) {
             throw new NotFoundException("HTTP ERROR 404: Невозможно обновить данные о пользователе");
         }
@@ -59,11 +58,12 @@ public class UserService {
         return userStorage.findById(id);
     }
 
-    public Optional<User> deleteById(int id) {
+    public User deleteById(int id) {
         if (!userStorage.findUsers().containsKey(id)) {
-            throw new NotFoundException("HTTP ERROR 404: Пользователь не найден. Невозможно удалить неизветсного пользователя");
+            throw new NotFoundException("HTTP ERROR 404: Невозможно удалить неизвестного пользователя");
         }
         log.info("Пользователь с id: '{}' удален", id);
+
         return userStorage.deleteById(id);
     }
 
@@ -138,11 +138,6 @@ public class UserService {
             }
             throw new BadRequestException("Ошибка валидации Пользователя: " + messageBuilder);
         }
-        /*if (user.getId() == 0) {
-            user.setId(counter++);
-        }
-
-         */
     }
 
     public Collection<User> getCommonFriendsList(final String supposedUserId, final String supposedOtherId) {

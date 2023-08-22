@@ -8,11 +8,11 @@ import java.util.Optional;
 
 public interface UserStorage {
 
-    Optional<User> create(User user);
-    Optional<User> update(User user);
+    User create(User user);
+    User update(User user);
 
     Optional <User> findById(Integer id);
-    Optional<User> deleteById(Integer id);
+    User deleteById(Integer id);
     User findUser(final Integer id);
 
     Map<Integer, User> findUsers();

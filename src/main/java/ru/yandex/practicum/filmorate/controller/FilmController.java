@@ -24,7 +24,7 @@ public class FilmController {
     private static final LocalDate START_DATA = LocalDate.of(1895, 12, 28);
 
     @PostMapping
-    public Optional<Film> create(@Valid @RequestBody Film film) {
+    public Film create(@Valid @RequestBody Film film) {
         log.info("POST запрос по адресу /films создание нового фильма: Данные запроса: '{}'", film);
         throwIfReleaseDateNotValid(film);
 
@@ -32,7 +32,7 @@ public class FilmController {
     }
 
     @PutMapping
-    public Optional<Film> update(@Valid @RequestBody Film film) {
+    public Film update(@Valid @RequestBody Film film) {
         log.info("Обновление фильма id '{}' '{}'", film.getId(), film);
         validateReleaseDate(film, "Обновление");
         throwIfReleaseDateNotValid(film);
@@ -49,11 +49,12 @@ public class FilmController {
     }
 
     @GetMapping("/{id}")
-    public Optional<Film> findById(@PathVariable String id) {
+    public Film findById(@PathVariable String id) {
         log.info("GET запрос по адресу '/films/{}'", id);
 
         return filmService.findById(id);
     }
+
 
     @PutMapping("/{filmId}/like/{userId}")
     public void addLike(@PathVariable String filmId, @PathVariable String userId) {
