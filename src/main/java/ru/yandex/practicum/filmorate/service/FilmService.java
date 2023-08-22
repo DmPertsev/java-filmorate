@@ -22,7 +22,6 @@ import java.util.Set;
 @Slf4j
 public class FilmService {
 
-    private static int counter = 1;
     private final Validator validator;
     private final FilmStorage filmStorage;
     private final GenreStorage genreStorage;
@@ -39,13 +38,11 @@ public class FilmService {
 
     public Film create(Film film) {
         validate(film);
-        throwIfReleaseDateNotValid(film);
 
         return filmStorage.create(film);
     }
 
     public Film update(Film film) {
-        throwIfReleaseDateNotValid(film);
         validate(film);
 
         if (filmStorage.isNotExist(film.getId())) {
@@ -61,46 +58,24 @@ public class FilmService {
         return films;
     }
 
-    public void addLike(String filmId, String userId) {
+    public void addLike(Integer filmId, Integer userId) {
         Optional<Film> film = getFilmStored(filmId);
-        User user = userService.getUserById(userId);
-        filmStorage.removeLike(film.get().getId(), user.getId());
+        User user = userService.getUserById(userId.toString());
+        filmStorage.addLike(film.get().getId(), user.getId());
         log.info("Фильм с id: '{}' получил лайк", filmId);
     }
 
-    public void removeLike(String filmId, String userId) {
+    public void removeLike(Integer filmId, Integer userId) {
         Optional<Film> film = getFilmStored(filmId);
-        User user = userService.getUserById(userId);
+        User user = userService.getUserById(userId.toString());
         filmStorage.removeLike(film.get().getId(), user.getId());
         log.info("У Фильма id: '{}' удалён лайк", filmId);
     }
 
-    public Collection<Film> getPopularFilms(String count) {
-        Integer size = parseId(count);
-        if (size == Integer.MIN_VALUE) {
-            size = 10;
-        }
+    public Collection<Film> getPopularFilms(Integer count) {
         log.info("Список популярных фильмов отправлен");
 
-        return filmStorage.findPopularFilms(size);
-    }
-
-    void throwIfReleaseDateNotValid(Film film) {
-
-        if (film.getName().isBlank()) {
-            log.warn("Дата выпуска фильма: {}", film.getReleaseDate());
-            throw new BadRequestException("HTTP ERROR 400: Название фильма не может быть пустым");
-        }
-
-        if (film.getDuration() < 0) {
-            log.warn("Продолжительность фильма: {}", film.getDuration());
-            throw new InternalException("HTTP ERROR 500: Продолжительность фильма не может быть меньше нуля");
-        }
-
-        if (film.getDescription().length() > 200) {
-            log.warn("Текущее описание фильма: {}", film.getDescription());
-            throw new  BadRequestException("HTTP ERROR 400: Описание должно быть не более 200 символов");
-        }
+        return filmStorage.findPopularFilms(count);
     }
 
     private void validate(Film film) {
@@ -112,22 +87,12 @@ public class FilmService {
             }
             throw new BadRequestException("Ошибка валидации Фильма: " + messageBuilder);
         }
-        if (film.getId() == 0) {
-            film.setId(getNextId());
-        }
     }
 
-    private static int getNextId() {
-        return counter++;
-    }
-
-    public Film findById(String id) {
-        final int filmId = parseId(id);
-        if (filmId == Integer.MIN_VALUE) {
-            throw new NotFoundException("HTTP ERROR 404: Не удалось найти id фильма: " + id);
-        }
-        return filmStorage.findById(filmId)
-                .orElseThrow(() -> new NotFoundException(String.format("HTTP ERROR 404: Фильм с id: '%d' не найден", filmId)));
+    public Film findById(Integer id) {
+        return filmStorage.findById(id)
+                .orElseThrow(() ->
+                        new NotFoundException(String.format("HTTP ERROR 404: Фильм с id: '%d' не найден", id)));
     }
 
 
@@ -139,13 +104,9 @@ public class FilmService {
         }
     }
 
-    private Optional<Film> getFilmStored(final String supposedId) {
-        final int filmId = parseId(supposedId);
-        if (filmId == Integer.MIN_VALUE) {
-            throw new NotFoundException("HTTP ERROR 404: Не удалось найти id фильма: '{}'", supposedId);
-        }
+    private Optional<Film> getFilmStored(Integer filmId) {
         Optional<Film> film = filmStorage.findById(filmId);
-        if (film == null) {
+        if (film.isEmpty()) {
             throw new NotFoundException(String.format("HTTP ERROR 404: Фильм с id: '%d' не найден", filmId));
         }
 
