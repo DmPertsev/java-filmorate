@@ -1,125 +1,100 @@
 package ru.yandex.practicum.filmorate.service;
 
-import com.sun.jdi.InternalException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import ru.yandex.practicum.filmorate.exception.BadRequestException;
-import ru.yandex.practicum.filmorate.exception.ConflictException;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.GenreStorage;
 
-import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class FilmService {
 
-    private static final LocalDate DATE_BEFORE = LocalDate.of(1895, 12, 28);
-
     private final FilmStorage filmStorage;
+    private final GenreService genreService;
+    private final UserService userService;
+
+    @Autowired
+    public FilmService(@Qualifier("FilmDbStorage") FilmStorage filmStorage,
+                       GenreService genreService, @Autowired(required = false) UserService userService) {
+        this.filmStorage = filmStorage;
+        this.genreService = genreService;
+        this.userService = userService;
+    }
 
     public Film create(Film film) {
-        return filmStorage.create(film);
+        Film createdFilm = filmStorage.create(film);
+        if (createdFilm.getGenres() != null && !createdFilm.getGenres().isEmpty()) {
+            genreService.addFilmGenres(createdFilm.getId(), createdFilm.getGenres());
+        }
+
+        return createdFilm;
     }
 
     public Film update(Film film) {
-        throwIfReleaseDateNotValid(film);
-        if (filmStorage.isNotExist(film.getId())) {
-            throw new NotFoundException("HTTP ERROR 404: Невозможно обновить данные о фильме, так как такого фильма у нас нет");
+        Film updatedFilm = filmStorage.update(film);
+        genreService.deleteFilmGenres(updatedFilm.getId());
+        if (updatedFilm.getGenres() != null && !updatedFilm.getGenres().isEmpty()) {
+            genreService.addFilmGenres(updatedFilm.getId(), updatedFilm.getGenres());
         }
 
-        return filmStorage.update(film);
+        return updatedFilm;
     }
 
     public List<Film> getAll() {
-        log.info("Список фильмов отправлен");
+        final List<Film> films = filmStorage.findAll();
 
-        return filmStorage.findAll();
+        return films;
     }
 
-    public Film getById(int id) {
-        filmStorage.isNotExist(id);
-        log.info("Фильм с id: {} отправлен", id);
-
-        return filmStorage.findById(id);
+    public void addLike(Integer filmId, Integer userId) {
+        Optional<Film> film = getFilmStored(filmId);
+        User user = userService.getUserById(userId.toString());
+        filmStorage.addLike(film.get().getId(), user.getId());
+        log.info("Фильм с id: '{}' получил лайк", filmId);
     }
 
-    public Film deleteById(int id) {
-        filmStorage.isNotExist(id);
-        log.info("Фильм с id: {} удален", id);
-
-        return filmStorage.deleteById(id);
+    public void removeLike(Integer filmId, Integer userId) {
+        Optional<Film> film = getFilmStored(filmId);
+        User user = userService.getUserById(userId.toString());
+        filmStorage.removeLike(film.get().getId(), user.getId());
+        log.info("У Фильма id: '{}' удалён лайк", filmId);
     }
 
-    public Film addLike(int filmId, int userId) {
-        filmStorage.isNotExist(filmId);
-        filmStorage.findById(filmId).getUsersLikes().add(userId);
-        log.info("Пользователь с id: {} поставил лайк фильму с id {}", userId, filmId);
-
-        return filmStorage.findById(filmId);
-    }
-
-    public Film removeLike(int filmId, int userId) {
-        filmStorage.isNotExist(filmId);
-
-        if (!filmStorage.findById(filmId).getUsersLikes().contains(userId)) {
-            throw new NotFoundException("HTTP ERROR 404: Нет лайка от пользователя");
-        }
-        filmStorage.findById(filmId).getUsersLikes().contains(userId);
-        log.info("Пользователь с id: {} удалил лайк фильму с id {}", userId, filmId);
-
-        return filmStorage.findById(filmId);
-    }
-
-    public List<Film> getPopularFilms(int count) {
+    public Collection<Film> getPopularFilms(Integer count) {
         log.info("Список популярных фильмов отправлен");
 
-        return filmStorage.findAll().stream()
-                .sorted((o1, o2) -> Integer.compare(o2.getUsersLikes().size(), o1.getUsersLikes().size()))
-                .limit(count)
-                .collect(Collectors.toList());
+        return filmStorage.findPopularFilms(count);
     }
 
-    public void throwIfReleaseDateNotValid(Film film) {
+    public Film findById(Integer id) {
+        return filmStorage.findById(id)
+                .orElseThrow(() ->
+                        new NotFoundException(String.format("HTTP ERROR 404: Фильм с id: '%d' не найден", id)));
+    }
 
-        if (film.getName().isBlank()) {
-            log.warn("Дата выпуска фильма: {}", film.getReleaseDate());
-            throw new BadRequestException("HTTP ERROR 400: Название фильма не может быть пустым");
-        }
-
-        if (film.getReleaseDate().isBefore(DATE_BEFORE)) {
-            log.warn("Дата выпуска фильма: {}", film.getReleaseDate());
-            throw new BadRequestException("HTTP ERROR 400: До 28 декабря 1895 года кино не производили");
-        }
-
-        if (film.getDuration() < 0) {
-            log.warn("Продолжительность фильма: {}", film.getDuration());
-            throw new InternalException("HTTP ERROR 500: Продолжительность фильма не может быть меньше нуля");
-        }
-
-        if (film.getDescription().length() > 200) {
-            log.warn("Текущее описание фильма: {}", film.getDescription());
-            throw new BadRequestException("HTTP ERROR 400: Описание должно быть не более 200 символов");
+    private Integer parseId(final String supposedInt) {
+        try {
+            return Integer.valueOf(supposedInt);
+        } catch (NumberFormatException exception) {
+            return Integer.MIN_VALUE;
         }
     }
 
-    public void throwIfAlreadyExist(Film filmToAdd) {
-        boolean exists = filmStorage.findAll().stream()
-                .anyMatch(film -> isAlreadyExist(filmToAdd, film));
-        if (exists) {
-            log.warn("Фильм к добавлению: {}", filmToAdd);
-            throw new ConflictException("HTTP ERROR 409: Такой фильм уже существует в коллекции");
+    private Optional<Film> getFilmStored(Integer filmId) {
+        Optional<Film> film = filmStorage.findById(filmId);
+        if (film.isEmpty()) {
+            throw new NotFoundException(String.format("HTTP ERROR 404: Фильм с id: '%d' не найден", filmId));
         }
-    }
-
-    private boolean isAlreadyExist(Film filmToAdd, Film film) {
-        return filmToAdd.getName().equals(film.getName()) &&
-                filmToAdd.getReleaseDate().equals(film.getReleaseDate());
+        return film;
     }
 }
